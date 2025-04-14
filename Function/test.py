@@ -1,4 +1,3 @@
-
 # demo1
 
 # import matplotlib.pyplot as plt
@@ -53,7 +52,7 @@ def run_comparison():
         print(
             f"Size: {size:6d} | np.dot: {np_time:.6f}s | Loop: {loop_time:.6f}s | Speedup: {loop_time / np_time:.1f}x")
 
-    # 绘制结果
+        # 绘制结果
     plt.figure(figsize=(10, 6))
     plt.plot(sizes, np_times, label='np.dot', marker='o')
     plt.plot(sizes, loop_times, label='Python loop', marker='x')
