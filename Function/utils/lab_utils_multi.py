@@ -142,3 +142,10 @@ def zscore_normalize_features(X, rtn_ms=False):
         return (X_norm, mu, sigma)
     else:
         return (X_norm)
+
+
+def load_house_data():
+    data = np.loadtxt("./data/houses.txt", delimiter=',', skiprows=1)
+    X = data[:, :4]
+    y = data[:, 4]
+    return X, y
