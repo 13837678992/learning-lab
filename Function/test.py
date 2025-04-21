@@ -1,4 +1,10 @@
+import matplotlib.pyplot as plt
+import numpy as np
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 或 'Microsoft YaHei'
+plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 # demo1
+
+
 
 # import matplotlib.pyplot as plt
 #
@@ -109,8 +115,53 @@
 
 
 # demo5
-sizes = [100.0, 100.0, 100.0]
-h = sizes[0]
+# sizes = [100.0, 100.0, 100.0]
+# h = sizes[0]
+#
+# aa = [3 * _ for _ in sizes]
+# print(aa)
 
-aa = [3 * _ for _ in sizes]
-print(aa)
+# demo6
+
+
+# 定义x的取值范围，注意log函数定义域(0, +∞)
+# x = np.linspace(0.01, 10, 500)
+# y1 = np.log2(x)        # log2(x)
+# y2 = np.log( x )       # 自然对数 ln(x)
+# y3 = np.log10(x)       # log10(x)
+#
+# # 绘图
+# plt.figure(figsize=(8,6))
+# plt.plot(x, y1, label=r'$y=\log_2 x$', color='blue')
+# plt.plot(x, y2, label=r'$y=\ln x$', color='green')
+# plt.plot(x, y3, label=r'$y=\log_{10} x$', color='orange')
+# plt.axhline(0, color='black', linewidth=0.5)
+# plt.axvline(1, color='gray', linestyle='--', linewidth=0.8)
+#
+# # 设置图形属性
+# plt.title('对数函数图像')
+# plt.xlabel('x')
+# plt.ylabel('y')
+# plt.ylim(-5, 5)
+# plt.grid(True, linestyle='--', alpha=0.5)
+# plt.legend()
+# plt.show()
+
+# 定义预测概率
+y_hat = np.linspace(0.001, 0.999, 100)
+
+# 真实值为1时的损失
+loss_1 = -np.log(y_hat)
+
+# 真实值为0时的损失
+loss_0 = -np.log(1 - y_hat)
+
+# 画图
+plt.plot(y_hat, loss_1, label="y=1 时的损失")
+plt.plot(y_hat, loss_0, label="y=0 时的损失")
+plt.xlabel("预测概率 $\hat{y}$")
+plt.ylabel("对数损失值")
+plt.title("Logistic回归的对数损失函数")
+plt.legend()
+plt.grid(True)
+plt.show()
