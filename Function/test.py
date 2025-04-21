@@ -77,33 +77,40 @@
 # print(X)
 
 # demo4
-import numpy as np
-import matplotlib.pyplot as plt
+# import numpy as np
+# import matplotlib.pyplot as plt
+#
+# plt.rcParams['font.sans-serif'] = ['SimHei']  # Windows 系统通常自带 'SimHei'（黑体）
+# plt.rcParams['axes.unicode_minus'] = False  # 解决负号 '-' 显示问题
+#
+# # 定义 sigmoid 函数
+# def sigmoid(z):
+#     return 1 / (1 + np.exp(-z))
+#
+# # 定义 z 范围
+# z = np.linspace(-10, 10, 200)
+# prob = sigmoid(z)
+#
+# # 绘制 sigmoid 曲线
+# plt.figure(figsize=(8, 5))
+# plt.plot(z, prob, label=r'$\sigma(z) = \frac{1}{1 + e^{-z}}$', color='blue')
+# plt.axvline(0, color='gray', linestyle='--', label='决策边界 z=0')
+# plt.axhline(0.5, color='orange', linestyle='--', label='概率=0.5')
+#
+# # 添加坐标轴标签和标题
+# plt.title('Sigmoid 函数：线性值 z 与概率的映射关系', fontsize=14)
+# plt.xlabel('线性输出 z', fontsize=12)
+# plt.ylabel('概率值', fontsize=12)
+#
+# # 添加图例
+# plt.legend()
+# plt.grid(True)
+# plt.show()
 
-plt.rcParams['font.sans-serif'] = ['SimHei']  # Windows 系统通常自带 'SimHei'（黑体）
-plt.rcParams['axes.unicode_minus'] = False  # 解决负号 '-' 显示问题
 
-# 定义 sigmoid 函数
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
+# demo5
+sizes = [100.0, 100.0, 100.0]
+h = sizes[0]
 
-# 定义 z 范围
-z = np.linspace(-10, 10, 200)
-prob = sigmoid(z)
-
-# 绘制 sigmoid 曲线
-plt.figure(figsize=(8, 5))
-plt.plot(z, prob, label=r'$\sigma(z) = \frac{1}{1 + e^{-z}}$', color='blue')
-plt.axvline(0, color='gray', linestyle='--', label='决策边界 z=0')
-plt.axhline(0.5, color='orange', linestyle='--', label='概率=0.5')
-
-# 添加坐标轴标签和标题
-plt.title('Sigmoid 函数：线性值 z 与概率的映射关系', fontsize=14)
-plt.xlabel('线性输出 z', fontsize=12)
-plt.ylabel('概率值', fontsize=12)
-
-# 添加图例
-plt.legend()
-plt.grid(True)
-plt.show()
-
+aa = [3 * _ for _ in sizes]
+print(aa)

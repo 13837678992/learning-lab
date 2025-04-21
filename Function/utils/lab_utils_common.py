@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.patches import FancyArrowPatch
 from pathlib import Path
 
 plt.style.use(Path(__file__).parent.parent / 'deeplearning.mplstyle')
@@ -116,3 +117,25 @@ def gradient_descent(X, y, w_in, b_in, alpha, num_iters, logistic=False, lambda_
             if verbose: print(f"Iteration {i:4d}: Cost {J_history[-1]}   ")
 
     return w.reshape(w_in.shape), b, J_history  # return final w,b and J history for graphing
+
+
+def draw_vthresh(ax, x):
+    """ draws a threshold """
+    ylim = ax.get_ylim()
+    xlim = ax.get_xlim()
+    ax.fill_between([xlim[0], x], [ylim[1], ylim[1]], alpha=0.2, color=dlblue)
+    ax.fill_between([x, xlim[1]], [ylim[1], ylim[1]], alpha=0.2, color=dldarkred)
+    ax.annotate("z >= 0", xy=[x, 0.5], xycoords='data',
+                xytext=[30, 5], textcoords='offset points')
+    d = FancyArrowPatch(
+        posA=(x, 0.5), posB=(x + 3, 0.5), color=dldarkred,
+        arrowstyle='simple, head_width=5, head_length=10, tail_width=0.0',
+    )
+    ax.add_artist(d)
+    ax.annotate("z < 0", xy=[x, 0.5], xycoords='data',
+                xytext=[-50, 5], textcoords='offset points', ha='left')
+    f = FancyArrowPatch(
+        posA=(x, 0.5), posB=(x - 3, 0.5), color=dlblue,
+        arrowstyle='simple, head_width=5, head_length=10, tail_width=0.0',
+    )
+    ax.add_artist(f)
