@@ -1,4 +1,3 @@
-
 from matplotlib import cm
 from utils.lab_utils_common import sigmoid, dlblue, dlorange, np, plt, compute_cost_matrix
 
