@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
+
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 或 'Microsoft YaHei'
 plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 # demo1
-
 
 
 # import matplotlib.pyplot as plt
@@ -148,20 +148,36 @@ plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 # plt.show()
 
 # 定义预测概率
-y_hat = np.linspace(0.001, 0.999, 100)
+# y_hat = np.linspace(0.001, 0.999, 100)
+#
+# # 真实值为1时的损失
+# loss_1 = -np.log(y_hat)
+#
+# # 真实值为0时的损失
+# loss_0 = -np.log(1 - y_hat)
+#
+# # 画图
+# plt.plot(y_hat, loss_1, label="y=1 时的损失")
+# plt.plot(y_hat, loss_0, label="y=0 时的损失")
+# plt.xlabel("预测概率 $\hat{y}$")
+# plt.ylabel("对数损失值")
+# plt.title("Logistic回归的对数损失函数")
+# plt.legend()
+# plt.grid(True)
+# plt.show()
 
-# 真实值为1时的损失
-loss_1 = -np.log(y_hat)
 
-# 真实值为0时的损失
-loss_0 = -np.log(1 - y_hat)
+# demo7
+# import numpy as np
+#
+# A = np.array([[1, 2], [3, 4]])
+# B = np.array([5, 6])
+# print(A * B)
+# print(A @ B.T)
 
-# 画图
-plt.plot(y_hat, loss_1, label="y=1 时的损失")
-plt.plot(y_hat, loss_0, label="y=0 时的损失")
-plt.xlabel("预测概率 $\hat{y}$")
-plt.ylabel("对数损失值")
-plt.title("Logistic回归的对数损失函数")
-plt.legend()
-plt.grid(True)
-plt.show()
+# demo8
+
+wx, by = np.meshgrid(np.linspace(-6, 12, 50),
+                     np.linspace(10, -20, 40))
+
+points = np.c_[wx.ravel(), by.ravel()]
