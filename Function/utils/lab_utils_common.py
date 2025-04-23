@@ -191,3 +191,55 @@ def compute_cost_matrix(X, y, w, b, logistic=False, lambda_=0, safe=True):
     total_cost = cost + reg_cost  # scalar
 
     return total_cost  # scalar
+
+
+def plt_tumor_data(x, y, ax):
+    """ plots tumor data on one axis """
+    pos = y == 1
+    neg = y == 0
+
+    ax.scatter(x[pos], y[pos], marker='x', s=80, c='red', label="malignant")
+    ax.scatter(x[neg], y[neg], marker='o', s=100, label="benign", facecolors='none', edgecolors=dlblue, lw=3)
+    ax.set_ylim(-0.175, 1.1)
+    ax.set_ylabel('y')
+    ax.set_xlabel('Tumor Size')
+    ax.set_title("Logistic Regression on Categorical Data")
+
+    ax.figure.canvas.toolbar_visible = False
+    ax.figure.canvas.header_visible = False
+    ax.figure.canvas.footer_visible = False
+
+
+def compute_cost_logistic(X, y, w, b, lambda_=0, safe=False):
+    """
+    Computes cost using logistic loss, non-matrix version
+
+    Args:
+      X (ndarray): Shape (m,n)  matrix of examples with n features
+      y (ndarray): Shape (m,)   target values
+      w (ndarray): Shape (n,)   parameters for prediction
+      b (scalar):               parameter  for prediction
+      lambda_ : (scalar, float) Controls amount of regularization, 0 = no regularization
+      safe : (boolean)          True-selects under/overflow safe algorithm
+    Returns:
+      cost (scalar): cost
+    """
+
+    m, n = X.shape
+    cost = 0.0
+    for i in range(m):
+        z_i = np.dot(X[i], w) + b  # (n,)(n,) or (n,) ()
+        if safe:  # avoids overflows
+            cost += -(y[i] * z_i) + log_1pexp(z_i)
+        else:
+            f_wb_i = sigmoid(z_i)  # (n,)
+            cost += -y[i] * np.log(f_wb_i) - (1 - y[i]) * np.log(1 - f_wb_i)  # scalar
+    cost = cost / m
+
+    reg_cost = 0
+    if lambda_ != 0:
+        for j in range(n):
+            reg_cost += (w[j] ** 2)  # scalar
+        reg_cost = (lambda_ / (2 * m)) * reg_cost
+
+    return cost + reg_cost
