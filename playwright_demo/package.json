@@ -1,0 +1,21 @@
+{
+  "name": "playwright_test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node_modules/.bin/nodemon upload.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "@types/node": "^24.5.2",
+    "nodemon": "^3.1.10"
+  },
+  "volta": {
+    "node": "22.20.0"
+  }
+}
