@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.du.dao.UserMapper">
+    <select id="getUserList" resultType="User">
+        select * from mybatis.users
+    </select>
+    <select id="getUserById" resultType="User" parameterType="int">
+        select * from mybatis.Users where id = #{id}
+    </select>
+    <insert id="addUser"  parameterType="User">
+        insert into mybatis.users (id, name, password,email,birthday) values (#{id}, #{name}, #{password},#{email},#{birthday})
+    </insert>
+    <insert id="addUserMap"  parameterType="map">
+        insert into mybatis.users (id, name) values (#{userId}, #{userName})
+    </insert>
+    <update id="updateUser" parameterType="User" >
+        update mybatis.users set name = #{name}, password = #{password}, email = #{email}, birthday = #{birthday} where id = #{id}
+<!--        <selectKey resultType="User" order="AFTER">-->
+<!--            select * from mybatis.users where id = #{id}-->
+<!--        </selectKey>-->
+    </update>
+    <delete id="deleteUser" parameterType="int">
+        delete from mybatis.users where id = #{id}
+    </delete>
+
+</mapper>
