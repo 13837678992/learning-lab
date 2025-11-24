@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="stream" />
+        <module name="reactor" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="chapter01-stream" target="17" />
+      <module name="chapter02-reactor" target="17" />
+      <module name="chapter03-webflux" target="17" />
+      <module name="chapter04-r2dbc" target="17" />
+      <module name="chapter05-security" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="chapter01-stream" options="-parameters" />
+      <module name="chapter02-reactor" options="-parameters" />
+      <module name="chapter03-webflux" options="-parameters" />
+      <module name="chapter04-r2dbc" options="-parameters" />
+      <module name="chapter05-security" options="-parameters" />
+      <module name="reactor" options="-parameters" />
+      <module name="stream" options="-parameters" />
+    </option>
+  </component>
+</project>
