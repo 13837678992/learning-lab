@@ -1,0 +1,222 @@
+[
+  {
+    "id": 1,
+    "command": "nginx.exe -t",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-03T13:53:27.2226399+08:00",
+    "endTime": "2025-07-03T13:53:27.5947491+08:00",
+    "duration": 372,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T13:53:27.2226399+08:00"
+  },
+  {
+    "id": 2,
+    "command": "start /B nginx.exe -c conf/nginx.conf",
+    "output": "nginx启动成功",
+    "status": "success",
+    "startTime": "2025-07-03T13:53:27.6970951+08:00",
+    "endTime": "2025-07-03T13:53:27.7419647+08:00",
+    "duration": 44,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T13:53:27.6970951+08:00"
+  },
+  {
+    "id": 3,
+    "command": "nginx.exe -s stop",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-03T13:53:32.0220913+08:00",
+    "endTime": "2025-07-03T13:53:32.1125362+08:00",
+    "duration": 90,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T13:53:32.0220913+08:00"
+  },
+  {
+    "id": 4,
+    "command": "nginx.exe -t",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-03T13:53:33.9045979+08:00",
+    "endTime": "2025-07-03T13:53:33.9921752+08:00",
+    "duration": 87,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T13:53:33.9045979+08:00"
+  },
+  {
+    "id": 5,
+    "command": "start /B nginx.exe -c conf/nginx.conf",
+    "output": "nginx启动成功",
+    "status": "success",
+    "startTime": "2025-07-03T13:53:34.0934851+08:00",
+    "endTime": "2025-07-03T13:53:34.1384788+08:00",
+    "duration": 44,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T13:53:34.0934851+08:00"
+  },
+  {
+    "id": 6,
+    "command": "tasklist /fi \"IMAGENAME eq nginx.exe\"",
+    "output": "",
+    "status": "error",
+    "startTime": "2025-07-03T13:54:32.4630173+08:00",
+    "endTime": "2025-07-03T13:54:32.5189309+08:00",
+    "duration": 55,
+    "errorMsg": "错误: 无效参数/选项 - 'eq'。\n键入 \"TASKLIST /?\" 以了解用法。\n",
+    "createdAt": "2025-07-03T13:54:32.4630173+08:00"
+  },
+  {
+    "id": 7,
+    "command": "tasklist /fi \"IMAGENAME eq nginx.exe\"",
+    "output": "",
+    "status": "error",
+    "startTime": "2025-07-03T13:54:57.0744177+08:00",
+    "endTime": "2025-07-03T13:54:57.1288626+08:00",
+    "duration": 54,
+    "errorMsg": "错误: 无效参数/选项 - 'eq'。\n键入 \"TASKLIST /?\" 以了解用法。\n",
+    "createdAt": "2025-07-03T13:54:57.0744177+08:00"
+  },
+  {
+    "id": 8,
+    "command": "tasklist /fi \"IMAGENAME EQ nginx.exe\"",
+    "output": "",
+    "status": "error",
+    "startTime": "2025-07-03T13:56:35.8126635+08:00",
+    "endTime": "2025-07-03T13:56:35.8853674+08:00",
+    "duration": 72,
+    "errorMsg": "错误: 无效参数/选项 - 'EQ'。\n键入 \"TASKLIST /?\" 以了解用法。\n",
+    "createdAt": "2025-07-03T13:56:35.8126635+08:00"
+  },
+  {
+    "id": 9,
+    "command": "tasklist /fi \"imagename eq nginx.exe\"",
+    "output": "",
+    "status": "error",
+    "startTime": "2025-07-03T13:57:16.5402245+08:00",
+    "endTime": "2025-07-03T13:57:16.5950659+08:00",
+    "duration": 54,
+    "errorMsg": "错误: 无效参数/选项 - 'eq'。\n键入 \"TASKLIST /?\" 以了解用法。\n",
+    "createdAt": "2025-07-03T13:57:16.5402245+08:00"
+  },
+  {
+    "id": 10,
+    "command": "nginx.exe -s reload",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-03T13:59:49.1435911+08:00",
+    "endTime": "2025-07-03T13:59:49.2334879+08:00",
+    "duration": 89,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T13:59:49.1435911+08:00"
+  },
+  {
+    "id": 11,
+    "command": "nginx.exe -s reload",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-03T14:02:11.9764759+08:00",
+    "endTime": "2025-07-03T14:02:12.0658309+08:00",
+    "duration": 89,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T14:02:11.9764759+08:00"
+  },
+  {
+    "id": 12,
+    "command": "nginx.exe -s stop",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-03T14:02:30.2936189+08:00",
+    "endTime": "2025-07-03T14:02:30.3793285+08:00",
+    "duration": 85,
+    "errorMsg": "",
+    "createdAt": "2025-07-03T14:02:30.2936189+08:00"
+  },
+  {
+    "id": 13,
+    "command": "nginx.exe -t",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-04T14:05:10.8943421+08:00",
+    "endTime": "2025-07-04T14:05:11.2807699+08:00",
+    "duration": 386,
+    "errorMsg": "",
+    "createdAt": "2025-07-04T14:05:10.8943421+08:00"
+  },
+  {
+    "id": 14,
+    "command": "start /B nginx.exe -c conf/nginx.conf",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-04T14:05:11.3819865+08:00",
+    "endTime": "2025-07-04T14:05:11.4309742+08:00",
+    "duration": 48,
+    "errorMsg": "",
+    "createdAt": "2025-07-04T14:05:11.3819865+08:00"
+  },
+  {
+    "id": 15,
+    "command": "nginx.exe -s stop",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-04T14:05:39.7508817+08:00",
+    "endTime": "2025-07-04T14:05:39.8289658+08:00",
+    "duration": 78,
+    "errorMsg": "",
+    "createdAt": "2025-07-04T14:05:39.7508817+08:00"
+  },
+  {
+    "id": 16,
+    "command": "nginx.exe -t",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-04T15:50:09.7051107+08:00",
+    "endTime": "2025-07-04T15:50:09.8365649+08:00",
+    "duration": 131,
+    "errorMsg": "",
+    "createdAt": "2025-07-04T15:50:09.7051107+08:00"
+  },
+  {
+    "id": 17,
+    "command": "start /B nginx.exe -c conf/nginx.conf",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-07-04T15:50:09.9378322+08:00",
+    "endTime": "2025-07-04T15:50:09.978166+08:00",
+    "duration": 40,
+    "errorMsg": "",
+    "createdAt": "2025-07-04T15:50:09.9378322+08:00"
+  },
+  {
+    "id": 18,
+    "command": "nginx.exe -t",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-10-14T17:55:58.314081+08:00",
+    "endTime": "2025-10-14T17:55:58.3545492+08:00",
+    "duration": 40,
+    "errorMsg": "",
+    "createdAt": "2025-10-14T17:55:58.314081+08:00"
+  },
+  {
+    "id": 19,
+    "command": "start /B nginx.exe -c conf/nginx.conf",
+    "output": "nginx启动成功",
+    "status": "success",
+    "startTime": "2025-10-14T17:55:58.454606+08:00",
+    "endTime": "2025-10-14T17:55:58.4821048+08:00",
+    "duration": 27,
+    "errorMsg": "",
+    "createdAt": "2025-10-14T17:55:58.454606+08:00"
+  },
+  {
+    "id": 20,
+    "command": "nginx.exe -s stop",
+    "output": "",
+    "status": "success",
+    "startTime": "2025-10-14T17:56:00.1923361+08:00",
+    "endTime": "2025-10-14T17:56:00.213572+08:00",
+    "duration": 21,
+    "errorMsg": "",
+    "createdAt": "2025-10-14T17:56:00.1923361+08:00"
+  }
+]
