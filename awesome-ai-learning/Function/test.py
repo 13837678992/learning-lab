@@ -1,0 +1,183 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 或 'Microsoft YaHei'
+plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
+# demo1
+
+
+# import matplotlib.pyplot as plt
+#
+# plt.plot([1, 2, 3], [4, 5, 6])
+# plt.title("测试图像")
+# plt.xlabel("X轴")
+# plt.ylabel("Y轴")
+# plt.grid(True)
+# plt.show()
+
+
+# demo2
+# import numpy as np
+# import timeit
+# import matplotlib.pyplot as plt
+#
+#
+# def dot_product_with_loop(a, b):
+#     """使用Python原生循环计算点积"""
+#     result = 0
+#     for x, y in zip(a, b):
+#         result += x * y
+#     return result
+#
+#
+# def compare_dot_methods(size):
+#     """比较两种点积计算方法在不同数组大小下的性能"""
+#     # 准备数据
+#     a = np.random.rand(size)
+#     b = np.random.rand(size)
+#
+#     # 测试np.dot
+#     np_time = timeit.timeit(lambda: np.dot(a, b), number=100)
+#
+#     # 测试循环方法
+#     loop_time = timeit.timeit(lambda: dot_product_with_loop(a, b), number=100)
+#
+#     return np_time, loop_time
+#
+#
+# def run_comparison():
+#     """运行比较并绘制结果"""
+#     sizes = [10, 100, 1000, 5000, 10000, 50000, 100000, 1000000]
+#     np_times = []
+#     loop_times = []
+#
+#     for size in sizes:
+#         np_time, loop_time = compare_dot_methods(size)
+#         np_times.append(np_time)
+#         loop_times.append(loop_time)
+#         print(
+#             f"Size: {size:6d} | np.dot: {np_time:.6f}s | Loop: {loop_time:.6f}s | Speedup: {loop_time / np_time:.1f}x")
+#
+#         # 绘制结果
+#     plt.figure(figsize=(10, 6))
+#     plt.plot(sizes, np_times, label='np.dot', marker='o')
+#     plt.plot(sizes, loop_times, label='Python loop', marker='x')
+#     plt.xscale('log')
+#     plt.yscale('log')
+#     plt.xlabel('Array Size')
+#     plt.ylabel('Time for 100 operations (s)')
+#     plt.title('Performance Comparison: np.dot vs Python Loop')
+#     plt.legend()
+#     plt.grid(True)
+#     plt.show()
+#
+#
+# if __name__ == "__main__":
+#     run_comparison()
+
+
+# demo3
+# x = 1
+# X = 2
+# print(x)
+# print(X)
+
+# demo4
+# import numpy as np
+# import matplotlib.pyplot as plt
+#
+# plt.rcParams['font.sans-serif'] = ['SimHei']  # Windows 系统通常自带 'SimHei'（黑体）
+# plt.rcParams['axes.unicode_minus'] = False  # 解决负号 '-' 显示问题
+#
+# # 定义 sigmoid 函数
+# def sigmoid(z):
+#     return 1 / (1 + np.exp(-z))
+#
+# # 定义 z 范围
+# z = np.linspace(-10, 10, 200)
+# prob = sigmoid(z)
+#
+# # 绘制 sigmoid 曲线
+# plt.figure(figsize=(8, 5))
+# plt.plot(z, prob, label=r'$\sigma(z) = \frac{1}{1 + e^{-z}}$', color='blue')
+# plt.axvline(0, color='gray', linestyle='--', label='决策边界 z=0')
+# plt.axhline(0.5, color='orange', linestyle='--', label='概率=0.5')
+#
+# # 添加坐标轴标签和标题
+# plt.title('Sigmoid 函数：线性值 z 与概率的映射关系', fontsize=14)
+# plt.xlabel('线性输出 z', fontsize=12)
+# plt.ylabel('概率值', fontsize=12)
+#
+# # 添加图例
+# plt.legend()
+# plt.grid(True)
+# plt.show()
+
+
+# demo5
+# sizes = [100.0, 100.0, 100.0]
+# h = sizes[0]
+#
+# aa = [3 * _ for _ in sizes]
+# print(aa)
+
+# demo6
+
+
+# 定义x的取值范围，注意log函数定义域(0, +∞)
+# x = np.linspace(0.01, 10, 500)
+# y1 = np.log2(x)        # log2(x)
+# y2 = np.log( x )       # 自然对数 ln(x)
+# y3 = np.log10(x)       # log10(x)
+#
+# # 绘图
+# plt.figure(figsize=(8,6))
+# plt.plot(x, y1, label=r'$y=\log_2 x$', color='blue')
+# plt.plot(x, y2, label=r'$y=\ln x$', color='green')
+# plt.plot(x, y3, label=r'$y=\log_{10} x$', color='orange')
+# plt.axhline(0, color='black', linewidth=0.5)
+# plt.axvline(1, color='gray', linestyle='--', linewidth=0.8)
+#
+# # 设置图形属性
+# plt.title('对数函数图像')
+# plt.xlabel('x')
+# plt.ylabel('y')
+# plt.ylim(-5, 5)
+# plt.grid(True, linestyle='--', alpha=0.5)
+# plt.legend()
+# plt.show()
+
+# 定义预测概率
+# y_hat = np.linspace(0.001, 0.999, 100)
+#
+# # 真实值为1时的损失
+# loss_1 = -np.log(y_hat)
+#
+# # 真实值为0时的损失
+# loss_0 = -np.log(1 - y_hat)
+#
+# # 画图
+# plt.plot(y_hat, loss_1, label="y=1 时的损失")
+# plt.plot(y_hat, loss_0, label="y=0 时的损失")
+# plt.xlabel("预测概率 $\hat{y}$")
+# plt.ylabel("对数损失值")
+# plt.title("Logistic回归的对数损失函数")
+# plt.legend()
+# plt.grid(True)
+# plt.show()
+
+
+# demo7
+# import numpy as np
+#
+# A = np.array([[1, 2], [3, 4]])
+# B = np.array([5, 6])
+# print(A * B)
+# print(A @ B.T)
+
+# demo8
+
+wx, by = np.meshgrid(np.linspace(-6, 12, 50),
+                     np.linspace(10, -20, 40))
+
+points = np.c_[wx.ravel(), by.ravel()]
