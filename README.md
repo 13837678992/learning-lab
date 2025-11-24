@@ -32,24 +32,28 @@
 ## 使用说明
 1. 克隆仓库：
    ```bash
-   git clone https://github.com/13837678992/learning-lab.git ```
+   git clone https://github.com/13837678992/learning-lab.git 
+   ```
 2. 进入你感兴趣的子项目目录，例如：
-   ```bash cd learning-lab/front-vue-study ```
+   ```bash 
+   cd learning-lab/front-vue-study 
+   ```
 
 
 3. 根据子项目的 README 或说明，安装依赖并运行。例如常见流程：
    ```bash
    npm install
-   npm run dev```
+   npm run dev
+   ```
 
 
 
 4. 若子项目为 Java 或 Python 类型，则按照各自说明（例如 mvn clean install、python main.py）进行。
 5. 建议经常更新：
-
-``bash
-git pull origin master
-``
+   
+   ```bash
+   git pull origin master
+   ```
 
 
 
