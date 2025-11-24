@@ -172,3 +172,17 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+learn_pytorch/dataSet/
+.idea/
+
+learn_pytorch/logs/
+learn_pytorch/log/
+.pytest_cache/
+logs/
+/data/
+
+learn_pytorch/data/
+learn_pytorch/log/
+learn_pytorch/data_images_net/
+learn_pytorch/imgs/
