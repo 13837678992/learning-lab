@@ -1,9 +1,25 @@
-const information = document.getElementById('info')
-information.innerText = `This app is using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
+/**
+ * 预加载
+ */
 
-const func = async () => {
-    const response = await window.versions.getPing()
-    console.log(response) // prints out 'pong'
-}
+// const information = document.getElementById('info')
+// information.innerText = `This app is using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
+//
+// const func = async () => {
+//     const response = await window.versions.getPing()
+//     console.log(response) // prints out 'pong'
+// }
+//
+// func()
+/**
+ * 夜间模式
+ */
+document.getElementById('toggle-dark-mode').addEventListener('click', async () => {
+    const isDarkMode = await window.darkMode.toggle()
+    document.getElementById('theme-source').innerHTML = isDarkMode ? 'Dark' : 'Light'
+})
 
-func()
+document.getElementById('reset-to-system').addEventListener('click', async () => {
+    await window.darkMode.system()
+    document.getElementById('theme-source').innerHTML = 'System'
+})
