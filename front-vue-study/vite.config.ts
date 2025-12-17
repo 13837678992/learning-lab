@@ -30,6 +30,19 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
         clientFiles: ["./index.html", "./src/{views,components}/*"]
       }
     },
+    // 修复后的 CSS 预处理配置（删除了 implementation 行）
+    css: {
+      preprocessorOptions: {
+        scss: {
+          // 核心：关闭 Sass 弃用警告（包括 @import 警告）
+          quietDeps: true,
+          // 全局注入变量，彻底屏蔽 @import 弃用提示
+          additionalData: `$quiet-deprecation-warnings: true;`
+        }
+      },
+      // 关闭 CSS SourceMap，减少资源占用，避免 VSCode 插件冲突
+      devSourcemap: false,
+    },
     plugins: getPluginsList(VITE_CDN, VITE_COMPRESSION),
     // https://cn.vitejs.dev/config/dep-optimization-options.html#dep-optimization-options
     optimizeDeps: {
