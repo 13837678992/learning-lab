@@ -2,7 +2,8 @@
   <div id="app">
     <!--    <ExcelEditPreview />-->
     <!-- <VueOffice></VueOffice> -->
-    <DomImage></DomImage>
+    <!-- <DomImage></DomImage> -->
+    <JsxDemo></JsxDemo>
   </div>
 </template>
 
@@ -10,13 +11,15 @@
 // import ExcelEditPreview from "@/components/ExcelEditPreview.vue";
 // import HelloWorld from "@/components/HelloWorld.vue";
 // import VueOffice from "@/components/VueOffice.vue";
-import DomImage from '@/thunb/DomImage.vue'
+// import DomImage from '@/thunb/DomImage.vue'
+import JsxDemo from './jsxdemo/JsxDemo'
 export default {
   name: 'App',
   components: {
     // eslint-disable-next-line
     // ExcelEditPreview,
-    DomImage,
+    // DomImage,
+    JsxDemo,
   },
 }
 </script>

@@ -1,5 +1,0 @@
-# ESLint 配置文件
-.eslintrc.js
-.eslintrc.json
-# wasm 相关目录
-src/wasm/
