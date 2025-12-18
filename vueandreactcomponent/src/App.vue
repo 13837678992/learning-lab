@@ -1,22 +1,23 @@
 <template>
   <div id="app">
-<!--    <ExcelEditPreview />-->
-    <VueOffice></VueOffice>
+    <!--    <ExcelEditPreview />-->
+    <!-- <VueOffice></VueOffice> -->
+    <DomImage></DomImage>
   </div>
-
 </template>
 
 <script>
 // import ExcelEditPreview from "@/components/ExcelEditPreview.vue";
 // import HelloWorld from "@/components/HelloWorld.vue";
-import VueOffice from "@/components/VueOffice.vue";
+// import VueOffice from "@/components/VueOffice.vue";
+import DomImage from '@/thunb/DomImage.vue'
 export default {
   name: 'App',
   components: {
     // eslint-disable-next-line
     // ExcelEditPreview,
-    VueOffice
-  }
+    DomImage,
+  },
 }
 </script>
 
