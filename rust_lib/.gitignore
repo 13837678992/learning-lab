@@ -1,0 +1,104 @@
+# ==========================
+# Rust 核心构建产物
+# ==========================
+# Cargo 编译产物
+target/
+
+# Cargo 锁文件（可选：如果项目是库，建议提交；二进制项目可忽略）
+# Cargo.lock
+
+# ==========================
+# 依赖与缓存
+# ==========================
+# Cargo 本地缓存
+.cargo/
+# 未完成的下载/构建缓存
+registry/
+# 临时构建目录
+build/
+# 编译中间产物
+*.rlib
+*.dll
+*.so
+*.dylib
+*.a
+*.o
+*.so.*
+*.dylib.*
+*.dll.*
+Cargo.lock
+
+# ==========================
+# 编辑器/IDE 配置
+# ==========================
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ/RustRover
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+.*.swp
+.un~
+.session.vim
+.netrwhist
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ==========================
+# 操作系统相关
+# ==========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN.EMD/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*.swp
+.*.sw?
+*.directory
+.Trash-*
+.nfs*
