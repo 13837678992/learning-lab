@@ -1,0 +1,60 @@
+{
+  "name": "router-title-jump",
+  "displayName": "路由标题跳转",
+  "description": "输入中文路由 title，快速跳转到对应路由配置",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:router-jump.jumpByTitle"
+  ],
+  "main": "extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "router-jump.jumpByTitle",
+        "title": "根据路由 Title 跳转"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "router-jump.jumpByTitle",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p"
+      }
+    ],
+    "configuration": {
+      "title": "Router Title Jump",
+      "properties": {
+        "routerJump.routerGlobs": {
+          "type": "array",
+          "default": [
+            "**/router/**/*.{js,ts,jsx,tsx}",
+            "**/routers/**/*.{js,ts,jsx,tsx}",
+            "**/src/router/**/*.{js,ts,jsx,tsx}"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "用于扫描路由 title 的文件 glob 模式"
+        },
+        "routerJump.exclude": {
+          "type": "string",
+          "default": "**/{node_modules,dist,build,out,.git}/**",
+          "description": "扫描路由文件时排除的路径"
+        }
+      }
+    }
+  },
+  "volta": {
+    "node": "20.15.0"
+  },
+  "dependencies": {
+    "@vscode/vsce": "^3.9.2"
+  }
+}
