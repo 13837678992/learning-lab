@@ -5,10 +5,13 @@
 node_modules/**
 src/**
 tests/**
+scripts/**
 esbuild.js
 eslint.config.js
 tsconfig.json
 jsconfig.json
+package-lock.json
+*.vsix
 **/*.map
 **/.DS_Store
 ARCHITECTURE.md

@@ -33,7 +33,7 @@
 - 增量更新单文件约 2–3ms。
 - 移除旧 `findFiles` 200 条上限；别名/项目根解析改为整根一次并缓存（原为每路由重复读盘）。
 
-详见 [PERFORMANCE.md](./PERFORMANCE.md)。
+详见 `PERFORMANCE.md`。
 
 ### ♻️ 重构
 
@@ -45,7 +45,7 @@
 ### 🧪 质量
 
 - 引入 `node:test`（61 用例全绿）、ESLint 扁平配置、`tsc --checkJs` 类型检查、esbuild 打包。
-- 详见 [TEST_REPORT.md](./TEST_REPORT.md) 与 [ARCHITECTURE.md](./ARCHITECTURE.md)。
+- 详见 `TEST_REPORT.md` 与 `ARCHITECTURE.md`。
 
 ### 🔧 涉及文件与原因
 

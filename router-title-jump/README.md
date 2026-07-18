@@ -53,7 +53,5 @@ npm run bench 3000 # 性能基准
 
 ## 文档
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — 架构与工作流
-- [CHANGELOG.md](./CHANGELOG.md) — 变更记录
-- [TEST_REPORT.md](./TEST_REPORT.md) — 测试报告
-- [PERFORMANCE.md](./PERFORMANCE.md) — 性能报告
+仓库内含：`ARCHITECTURE.md`（架构与工作流）、`CHANGELOG.md`（变更记录）、
+`TEST_REPORT.md`（测试报告）、`PERFORMANCE.md`（性能报告）。
