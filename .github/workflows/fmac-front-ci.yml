@@ -1,0 +1,54 @@
+name: fmac-front CI
+
+# 仅当 fmac-front 子目录变更时触发；learning-lab 仓库内其它同级项目不受影响。
+on:
+  push:
+    paths:
+      - 'fmac-front/**'
+      - '.github/workflows/fmac-front-ci.yml'
+  pull_request:
+    paths:
+      - 'fmac-front/**'
+      - '.github/workflows/fmac-front-ci.yml'
+
+# 同一分支的新提交取消进行中的旧任务。
+concurrency:
+  group: fmac-front-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: fmac-front
+
+jobs:
+  quality:
+    name: 质量门禁（守卫 / lint / 格式 / 测试 / 构建）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Architecture guard
+        run: pnpm check:arch
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Unit & integration tests
+        run: pnpm test
+
+      - name: Build all apps
+        run: pnpm build

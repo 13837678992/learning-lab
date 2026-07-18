@@ -2,7 +2,7 @@
   "name": "router-title-jump",
   "displayName": "路由标题跳转",
   "description": "输入中文路由 title，快速跳转到对应路由配置",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "local",
   "engines": {
     "vscode": "^1.70.0"
@@ -13,7 +13,20 @@
   "activationEvents": [
     "onCommand:router-jump.jumpByTitle"
   ],
-  "main": "extension.js",
+  "main": "./dist/extension.js",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test",
+    "build": "node esbuild.js --production",
+    "build:dev": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "vscode:prepublish": "npm run build",
+    "package": "vsce package --no-dependencies",
+    "check": "npm run lint && npm run typecheck && npm run test",
+    "bench": "node scripts/bench.js"
+  },
   "contributes": {
     "commands": [
       {
@@ -55,6 +68,18 @@
     "node": "20.15.0"
   },
   "dependencies": {
-    "@vscode/vsce": "^3.9.2"
+    "@babel/parser": "^8.0.4",
+    "@babel/traverse": "^8.0.4",
+    "pinyin-pro": "^3.28.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.1",
+    "@types/vscode": "~1.70.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "typescript": "^7.0.2"
   }
 }

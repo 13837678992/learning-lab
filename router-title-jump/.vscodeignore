@@ -1,5 +1,16 @@
 .vscode/**
 .vscode-test/**
 .git/**
+.github/**
+node_modules/**
+src/**
+tests/**
+esbuild.js
+eslint.config.js
+tsconfig.json
+jsconfig.json
 **/*.map
 **/.DS_Store
+ARCHITECTURE.md
+TEST_REPORT.md
+PERFORMANCE.md

@@ -1,0 +1,16 @@
+{
+  "name": "@fmac/arch-check",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FMAC Front 架构守卫：零依赖校验目录结构、依赖方向、qiankun 边界、框架隔离、apps 直连下层包与包级循环依赖。",
+  "bin": {
+    "fmac-arch-check": "./index.js"
+  },
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "check": "node ./index.js"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@fmac/event",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "跨应用事件总线：on / off / once / emit",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@fmac/shared": "workspace:*"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@fmac/ui-adapter",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "UI 框架适配层（唯一允许依赖具体 UI 框架的 package）",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@fmac/shared": "workspace:*"
+  }
+}

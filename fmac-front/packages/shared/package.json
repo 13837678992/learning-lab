@@ -1,0 +1,15 @@
+{
+  "name": "@fmac/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "跨层通用工具与常量（框架无关基础层，不依赖任何其它 package）",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ]
+}

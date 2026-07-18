@@ -1,4 +1,7 @@
+
+### Mac OS ###
 .DS_Store
+*.DS_Store
 node_modules
 /dist
 package-lock.json

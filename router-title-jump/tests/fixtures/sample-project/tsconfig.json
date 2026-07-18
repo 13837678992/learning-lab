@@ -1,0 +1,10 @@
+{
+  // 故意带注释与尾逗号，验证 JSONC 容错解析
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@comp/*": ["src/components/*"],
+    },
+  },
+}

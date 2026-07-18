@@ -1,0 +1,30 @@
+{
+  "name": "@fmac/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "平台内核：组合各能力并托管 qiankun 生命周期（唯一允许引用 qiankun）",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@fmac/shared": "workspace:*",
+    "@fmac/router": "workspace:*",
+    "@fmac/store": "workspace:*",
+    "@fmac/request": "workspace:*",
+    "@fmac/event": "workspace:*",
+    "@fmac/loading": "workspace:*",
+    "@fmac/message": "workspace:*",
+    "@fmac/cache": "workspace:*",
+    "@fmac/auth": "workspace:*",
+    "@fmac/tab": "workspace:*",
+    "@fmac/ui-adapter": "workspace:*",
+    "@fmac/plugin": "workspace:*",
+    "qiankun": "^2.10.0"
+  }
+}

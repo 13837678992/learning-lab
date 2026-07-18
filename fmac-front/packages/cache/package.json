@@ -1,0 +1,18 @@
+{
+  "name": "@fmac/cache",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "统一缓存能力（隔离 storage 实现）",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@fmac/shared": "workspace:*"
+  }
+}

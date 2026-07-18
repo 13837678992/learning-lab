@@ -1,0 +1,12 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  - 'configs/*'
+
+# esbuild（Vite/Vitest 构建引擎）的二进制随平台包 @esbuild/<platform> 分发，无需运行其安装脚本。
+# 显式决定不构建，避免 pnpm 11 以 ERR_PNPM_IGNORED_BUILDS 阻断 install。
+allowBuilds:
+  esbuild: false
+
+# 运行脚本（dev/build/lint/test）前不强制校验依赖。
+verifyDepsBeforeRun: false

@@ -1,0 +1,13 @@
+{
+  "name": "@fmac/prettier-config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FMAC Front 统一 Prettier 配置",
+  "main": "index.json",
+  "exports": {
+    ".": "./index.json"
+  },
+  "files": [
+    "index.json"
+  ]
+}

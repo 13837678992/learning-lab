@@ -1,0 +1,11 @@
+{
+  "name": "@fmac/constants",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FMAC Front 跨端共享常量（单一事实源）：微应用命名、激活规则、API 前缀、事件名、store key。",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  }
+}

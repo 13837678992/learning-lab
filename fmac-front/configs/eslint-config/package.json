@@ -1,0 +1,22 @@
+{
+  "name": "@fmac/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FMAC Front 统一 ESLint 扁平配置（框架无关基线）",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0"
+  },
+  "peerDependencies": {
+    "eslint": ">=9"
+  }
+}

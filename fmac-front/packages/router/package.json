@@ -1,0 +1,18 @@
+{
+  "name": "@fmac/router",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "统一路由能力：push / replace / back / reload（隔离底层路由实现）",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@fmac/shared": "workspace:*"
+  }
+}

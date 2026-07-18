@@ -1,0 +1,53 @@
+/*
+ * finance-demo 独立样式（刻意模拟"另一套 UI 库"的全局风格）。
+ *
+ * 下方 h2 / .fbtn / table 等选择器若无隔离会污染主应用；qiankun strictStyleIsolation
+ * 通过 Shadow DOM 将其限定在子应用内，验证「不影响 main」。standalone 下正常作用于自身。
+ */
+.finance-app {
+  --fin-primary: #7c3aed;
+  --fin-ink: #2e1065;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--fin-ink);
+}
+
+.finance-app h2 {
+  color: var(--fin-primary);
+  letter-spacing: 1px;
+  border-left: 6px solid var(--fin-primary);
+  padding-left: 10px;
+}
+
+.finance-app .fbtn {
+  background: var(--fin-primary);
+  color: #fff;
+  border: 2px solid #4c1d95;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.finance-app .fbtn.ghost {
+  background: #f5f3ff;
+  color: var(--fin-primary);
+}
+
+.finance-app .ftbl {
+  width: 100%;
+  max-width: 680px;
+  border-collapse: collapse;
+  border: 2px solid var(--fin-primary);
+}
+
+.finance-app .ftbl th,
+.finance-app .ftbl td {
+  border: 1px solid #ddd6fe;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.finance-app .ftbl th {
+  background: #ede9fe;
+}

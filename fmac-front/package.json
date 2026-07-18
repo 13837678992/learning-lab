@@ -1,0 +1,46 @@
+{
+  "name": "fmac-front",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "FMAC Front —— 长期维护、可扩展、可升级的企业级微前端平台（主应用 Vue2 + qiankun + pnpm workspace）",
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "corepack pnpm --filter \"./apps/*\" --parallel run dev",
+    "build": "corepack pnpm --filter \"./apps/*\" run build",
+    "build:apps": "corepack pnpm --filter \"./apps/*\" run build",
+    "build:test": "corepack pnpm --filter \"./apps/*\" run build:test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:arch": "node configs/arch-check/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "precommit": "lint-staged",
+    "check": "corepack pnpm check:arch && corepack pnpm lint && corepack pnpm test",
+    "clean": "rimraf --glob \"apps/*/dist\" \"packages/*/dist\" .eslintcache",
+    "clean:deps": "rimraf --glob \"**/node_modules\"",
+    "commitlint": "commitlint --edit"
+  },
+  "prettier": "@fmac/prettier-config",
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@fmac/eslint-config": "workspace:*",
+    "@fmac/prettier-config": "workspace:*",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^9.17.0",
+    "happy-dom": "^20.10.6",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "vite-plugin-qiankun": "^1.0.15",
+    "vitest": "^4.1.10"
+  }
+}
