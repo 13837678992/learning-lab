@@ -1,7 +1,7 @@
 # FMAC Front 架构定稿（Architecture Final）
 
 > 架构优化后的**定稿快照**。硬性约束以根目录 [`CLAUDE.md`](../../CLAUDE.md) 为准；与其冲突时以 `CLAUDE.md` 为准。
-> 最近更新：2026-07-18（Phase 9）。演进记录见 [optimization-log.md](./optimization-log.md)。
+> 最近更新：2026-07-22（Phase 10：webpack4 定型 + 主应用平台能力）。演进记录见 [optimization-log.md](./optimization-log.md)。
 
 ## 1. 目标与原则
 
@@ -65,6 +65,27 @@ shared                                            最底层通用工具 / 原语
 - 基座经 `platform.registerApps(apps)` / `platform.start()` 注册启动；注册表由 `@fmac/constants` + `@fmac/env` 派生（单一事实源，杜绝 activeRule/entry 漂移）。
 - 子应用导出标准 `bootstrap` / `mount(props)` / `unmount`，可 standalone 独立运行；router base / request baseURL 同样取自 `@fmac/constants`。
 - **样式隔离**：`core` 启动时强制 `sandbox.strictStyleIsolation = true`（合并调用方 sandbox 后覆盖，**不可关闭**）。
+
+### 主应用职责（Main Application Responsibilities）
+
+主应用（`apps/main`，webpack 4 基座）是平台的**编排与治理中心**，子应用只发信号、不越权。职责：
+
+| 职责           | 实现                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| qiankun 编排   | 经 `@fmac/core` 注册/启动子应用、注入共享平台（`apps/main/src/micro/`）                    |
+| 登录 / 权限    | `/login` 页 + `@fmac/auth` 登录态；模拟登录后加载菜单（`apps/main/src/views/Login.vue`）   |
+| 菜单           | `@fmac/auth` 的 `parseMenu` 递归解析 → 主应用菜单 / 子应用路由 / tab（`platform/menu.js`） |
+| tab            | `@fmac/tab` + 侧边栏 `MenuTree` 点击叶子生成 tab                                           |
+| session / 导航 | 统一处理子应用事件 `AUTH_EXPIRED` / `GO_LOGIN` / `GO_HOME`（`platform/session.js`）        |
+| UI 消息        | 注入 Element UI 消息适配器到平台 `message`（子应用经共享实例复用，禁止自行弹窗）           |
+
+**鉴权 / 导航事件协议**（子应用 `event.emit`，主应用 `event.on`，见 `@fmac/constants` 的 `EVENTS`）：
+
+| 事件           | 语义               | 主应用处理                                                                                            |
+| -------------- | ------------------ | ----------------------------------------------------------------------------------------------------- |
+| `AUTH_EXPIRED` | 登录失效/超时      | Element MessageBox 确认 → `auth.logout`+`tab.clear`+`cache.clear`+清菜单 → 跳 `/login`（存 redirect） |
+| `GO_LOGIN`     | 跳登录（redirect） | 存 redirect → `router.push('/login')`，登录后回跳                                                     |
+| `GO_HOME`      | 跳首页             | `router.push('/')`                                                                                    |
 
 ## 6. 跨应用通信规范
 

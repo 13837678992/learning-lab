@@ -14,6 +14,7 @@
 import { createAuth } from './auth.js';
 
 export { createAuth };
+export { parseMenu, flattenMenu, menuToRoutes, menuToTab } from './menu.js';
 
 /** 平台默认鉴权实例（单例）。 */
 const auth = createAuth();

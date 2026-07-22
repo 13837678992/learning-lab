@@ -1,6 +1,9 @@
+import './public-path.js';
 import './assets/finance.css';
-import { qiankunWindow } from 'vite-plugin-qiankun/dist/helper';
-import { renderStandalone } from './micro.js';
+import { bootstrap, mount, unmount, renderStandalone, POWERED } from './micro.js';
 
-// qiankun 生命周期已在 micro.js 经 renderWithQiankun 注册；独立运行时手动渲染。
-if (!qiankunWindow.__POWERED_BY_QIANKUN__) renderStandalone();
+// 独立运行时直接渲染；qiankun 环境下由基座调用下方导出的生命周期。
+if (!POWERED) renderStandalone();
+
+// 导出 qiankun 标准生命周期（webpack UMD → window['app-finance-demo']；不直接引用 qiankun）。
+export { bootstrap, mount, unmount };

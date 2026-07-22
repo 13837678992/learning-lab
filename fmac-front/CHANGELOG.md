@@ -8,6 +8,23 @@
 
 ## [Unreleased]
 
+### Phase 10 —— Webpack4 定型 + 主应用平台能力
+
+- **变更** `apps/main`、`apps/finance-demo` 定型 webpack 4：`webpack.config.js`（CommonJS，移除 `type:module`）、`alias @=src`、`file-loader` 资源、babel target `node 18.19`；修复 main 配置误粘入的 `require('react')`/悬空数组。
+- **新增** `.nvmrc`=`18.19.0`，`engines.node`=`>=18.19.0`。
+- **新增** 鉴权/导航事件协议 `AUTH_EXPIRED`/`GO_LOGIN`/`GO_HOME`（`@fmac/constants`）：子应用 emit、主应用统一处理（`apps/main/src/platform/session.js`）；子应用禁止自行弹窗/跳转。
+- **新增** 菜单解析器 `@fmac/auth`（`parseMenu`/`flattenMenu`/`menuToRoutes`/`menuToTab`，经 `@fmac/core` 暴露）+ 5 用例单测。
+- **新增** 主应用平台能力：`/login` + 模拟登录 → `loadMenu`（拉取→解析→共享 store）→ 侧边栏 `MenuTree` + tab；Element UI 消息适配器注入平台 `message`。
+- **新增** finance-demo 首页平台协议测试按钮（AUTH_EXPIRED/GO_LOGIN/GO_HOME）。
+- **更新** `architecture-final.md`（主应用职责）、`optimization-log.md`（Phase 8）。
+
+### 构建工具混用验证 —— main / finance-demo 迁移 webpack 4
+
+- **变更** `apps/main`（基座）与 `apps/finance-demo`（子应用）从 Vite 迁移到 **webpack 4**，与 Vite 子应用（`user`/`order`/`report`）并存；`packages/*`（能力包）**零改动**，验证平台构建工具无关。
+- finance-demo 还原为 UMD 生命周期导出（`library=app-finance-demo` → `window['app-finance-demo']`）+ `src/public-path.js`（qiankun 运行期 publicPath）；main 为 webpack SPA 基座。
+- `import.meta.env` → `process.env` + webpack `DefinePlugin`；`@fmac/env` / `@fmac/constants` 两构建工具通用。
+- webpack 配置用 `.cjs`（webpack 4 不支持 ESM 配置），业务源码仍 ESM（babel 转译）；`build` / `dev` 脚本内置 `--openssl-legacy-provider`（Node ≥17 兼容）。
+
 ### Phase 9 —— 集成测试 + CI/门禁 + 独立打包 + 部署
 
 - **新增** 集成测试（`happy-dom`）：`core.setup` 装配接线与 qiankun 生命周期托管（mock qiankun 验证 Hook 合并 / strictStyleIsolation / 异常桥接），11 用例。

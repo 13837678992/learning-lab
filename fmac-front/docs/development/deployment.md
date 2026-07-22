@@ -13,7 +13,8 @@ VITE_BASE=/user/ pnpm --filter @fmac/app-user build   # 部署在子路径时指
 
 - 产物在各 app 的 `dist/`（已 gitignore）。`apps/main/dist` 为基座；子应用各自 `dist` 独立部署。
 - `packages/*` / `configs/*` 以**源码**被 apps 直接打包，无需单独构建步骤。
-- 子应用经 `vite-plugin-qiankun` 打包，产物同时支持 **qiankun 挂载**与 **standalone 独立运行**。
+- 子应用产物同时支持 **qiankun 挂载**与 **standalone 独立运行**：Vite 子应用（`user`/`order`/`report`）经 `vite-plugin-qiankun`；webpack 子应用（`finance-demo`）经 UMD 输出（`library` = 应用名）。主应用（`main`）为 webpack 基座（普通 SPA）。
+- **webpack 应用**（`main`/`finance-demo`）在 Node ≥17 需 `--openssl-legacy-provider`（已内置于其 `build`/`dev` 脚本，无需手动设置）。
 
 ## 环境与配置中心
 

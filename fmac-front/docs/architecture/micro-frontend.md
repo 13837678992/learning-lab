@@ -2,8 +2,9 @@
 
 ## 角色
 
-- **主应用（基座）** `apps/main`：Vue2 + vue-router + Vite。负责外壳（Layout）、导航、注册与启动 qiankun、向子应用注入共享平台。
-- **子应用** `apps/user|order|report`：独立 Vue2 + Vite 应用，导出 qiankun 标准生命周期，可独立运行（standalone）。
+- **主应用（基座）** `apps/main`：Vue2 + vue-router + **webpack 4**。负责外壳（Layout）、导航、注册与启动 qiankun、向子应用注入共享平台。
+- **子应用**：`apps/user|order|report`（**Vite**）与 `apps/finance-demo`（**webpack 4**，UMD 输出）—— 独立 Vue2 应用，导出 qiankun 标准生命周期，可独立运行（standalone）。
+- **构建工具无关**：`main` / `finance-demo` 用 webpack 4、`user` / `order` / `report` 用 Vite，二者并存且 `packages/*`（能力包）**零改动**，验证平台不绑定单一构建工具（`import.meta.env` 与 `process.env`+DefinePlugin 各自适配，`@fmac/env`/`@fmac/constants` 两者通用）。
 
 ## qiankun 由 core 统一托管
 

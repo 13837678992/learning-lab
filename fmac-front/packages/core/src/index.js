@@ -24,6 +24,9 @@ export { setup, isInstalled, createMicroManager, hooks, errorHandler, plugins };
 // 把 app 自持的 vue-router 适配进 @fmac/router，各 app 不再重复实现（见 CLAUDE.md 第七节）。
 export { createVueRouterAdapter } from '@fmac/ui-adapter';
 
+// 菜单解析（鉴权域，纯函数）经 core 统一出口，供主应用生成菜单 / 子应用路由 / tab。
+export { parseMenu, flattenMenu, menuToRoutes, menuToTab } from '@fmac/auth';
+
 // 具名导出各能力，业务可按需解构使用。
 export const { event, request, router, store, loading, message, cache, auth, tab } = capabilities;
 

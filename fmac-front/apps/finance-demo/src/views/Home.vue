@@ -21,11 +21,20 @@
       <button class="fbtn" @click="open('/transaction', '交易流水')">交易流水</button>
       <button class="fbtn" @click="open('/report', '报表中心')">报表中心</button>
     </div>
+
+    <!-- 平台协议测试：子应用一律经 @fmac/event 发事件，由主应用统一处理（禁止子应用自行弹窗/跳转）。 -->
+    <div class="proto">
+      <div class="proto-title">平台协议测试（经 @fmac/event，主应用统一处理）</div>
+      <button class="fbtn danger" @click="testAuthExpired">模拟 Session 失效</button>
+      <button class="fbtn" @click="testGoLogin">跳转登录</button>
+      <button class="fbtn" @click="testGoHome">跳转首页</button>
+    </div>
   </div>
 </template>
 
 <script>
-import { router, getStore, openTab } from '../platform.js';
+import { router, getStore, openTab, getEvent } from '../platform.js';
+import { EVENTS } from '@fmac/constants';
 
 export default {
   name: 'FinanceHome',
@@ -68,6 +77,16 @@ export default {
       const next = this.currency === 'CNY' ? 'USD' : 'CNY';
       getStore().set('finance:currency', next); // 修改业务配置 → 主/子应用同步
     },
+    // —— 平台协议：子应用只 emit 事件，主应用统一处理 ——
+    testAuthExpired() {
+      getEvent().emit(EVENTS.AUTH_EXPIRED);
+    },
+    testGoLogin() {
+      getEvent().emit(EVENTS.GO_LOGIN, { redirect: '/finance' });
+    },
+    testGoHome() {
+      getEvent().emit(EVENTS.GO_HOME);
+    },
   },
 };
 </script>
@@ -94,5 +113,23 @@ code {
   background: #ede9fe;
   padding: 1px 4px;
   border-radius: 4px;
+}
+.proto {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed #ddd6fe;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.proto-title {
+  width: 100%;
+  font-size: 12px;
+  color: #94a3b8;
+}
+.fbtn.danger {
+  border-color: #fca5a5;
+  color: #dc2626;
 }
 </style>

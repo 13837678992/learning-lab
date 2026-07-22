@@ -5,6 +5,44 @@
 
 ---
 
+## Phase 10 · Webpack4 定型 + 主应用平台能力（2026-07-22）
+
+> 对应本次「Phase8」会话任务；因仓库历史已有 Phase 8/9，此处按日志序列续编为 Phase 10。
+
+在「构建工具混用」基础上，定型 `main`/`finance-demo` 的 webpack 4 工程，并**完善主应用平台能力**（登录 / session / 菜单 / tab）。运行目标环境 **Node 18.19.0**（`.nvmrc` + `engines`）。未升级 Vue3/webpack5，未引入 TS。
+
+### 已解决 / 新增
+
+- **Webpack4 兼容定型**：`webpack.config.js`（CommonJS，默认加载；移除 app 的 `type:module`）、`alias @ = src`、资源 loader（png/jpg/svg/woff → `file-loader`）、`babel-preset-env` target `node 18.19`；`--openssl-legacy-provider` 内置脚本兼容新 Node。**修复**了误粘入 main 配置的 `require('react')` 与悬空数组（会破坏构建并违反框架隔离）。
+- **Node 18.19 支持**：新增 `.nvmrc`=`18.19.0`，`engines.node`=`>=18.19.0`。
+- **Auth Event Protocol**（`@fmac/constants` 的 `EVENTS`）：子应用 `event.emit`、主应用 `event.on` 统一处理 `AUTH_EXPIRED` / `GO_LOGIN` / `GO_HOME`（`apps/main/src/platform/session.js`）。子应用**禁止自行弹窗 / 跳转**。
+- **Menu Parser**（`@fmac/auth`，经 `@fmac/core` 暴露）：`parseMenu`/`flattenMenu`/`menuToRoutes`/`menuToTab` 纯函数递归解析后端菜单 → 主应用菜单 / 子应用路由 / tab；5 用例单测。
+- **Main Platform Capability**：`/login` + 模拟登录 → `loadMenu`（拉取→解析→共享 store）→ 侧边栏 `MenuTree` 渲染 + 点击生成 tab；Element UI 消息适配器注入平台 `message`（子应用经共享实例复用）。
+- **架构合规**：菜单解析归 `packages/auth`（权限域，纯函数、框架无关）；Element UI 仅 `apps/main` 依赖（app 可用 UI 框架）；事件走 `@fmac/event`；qiankun 仍仅 `@fmac/core`。守卫 / lint / 测试（81）/ 全量构建 全绿；main、finance-demo dev-server 均验证（含 qiankun 跨域 CORS）。
+
+### 剩余风险
+
+- webpack 4 已 EOL：靠 `--openssl-legacy-provider` 兼容新 Node；长期维护建议评估 webpack 5。
+- qiankun 跨域运行期未做端到端 e2e（同既有 R-9）：构建 / dev 均验证、UMD 生命周期已暴露，真实基座挂载 finance-demo 建议 Playwright。
+- 菜单示例 url（`/frontKyp/...`）为样例数据，未对接真实子应用路由；`menuToRoutes` 已产出、接入策略留待后续。
+
+---
+
+## 增量 · 构建工具混用（webpack 4 接入，2026-07-22）
+
+将 `apps/main`（基座）与 `apps/finance-demo`（子应用）从 Vite 迁移到 **webpack 4**，与 Vite 子应用（`user`/`order`/`report`）**并存**，检验架构核心主张：**平台构建工具无关**。
+
+- **`packages/*` 零改动**：能力包纯 ESM，babel 转译即可被 webpack 消费（经 pnpm 符号链接解析到 `packages/`/`configs/` 真实路径，不在 `node_modules`，故参与转译）。
+- **构建差异仅落在 app 层**：
+  - finance-demo：UMD 输出（`library=app-finance-demo` + `libraryTarget=umd` + `globalObject=window` + `jsonpFunction` 防冲突）+ `src/public-path.js`（`__webpack_public_path__` 运行期修正）+ 导出式 `bootstrap/mount/unmount`；
+  - main：webpack SPA 基座；
+  - `import.meta.env`（Vite 专有）→ `process.env` + `DefinePlugin`；`@fmac/env`/`@fmac/constants` 两者通用。
+- **工具约束**：webpack 4 不支持 ESM 配置 → `webpack.config.cjs`（业务源码仍 ESM）；webpack 4 + Node ≥17 需 `--openssl-legacy-provider`（内置于脚本）。
+- **验证**：`pnpm build` 五应用（webpack×2 + vite×3）全部通过；`check:arch`/`lint`/`test`(76)/`format` 全绿。子应用 UMD 已暴露 `window['app-finance-demo']` 生命周期。
+- **遗留**：webpack 4 为 EOL，且未做 qiankun 跨域运行期 e2e（同 R-9）；如需长期维护建议评估升级 webpack 5。
+
+---
+
 ## Phase 9 · 集成测试 + CI/门禁 + 独立打包 + 部署（2026-07-18）
 
 目标：从「可运行」升级为「**可测试、可持续交付、可独立部署、可企业级维护**」。基于既有稳定架构演进，**未新增业务功能**，未预置未使用的 Vue3/React/Wujie 适配。

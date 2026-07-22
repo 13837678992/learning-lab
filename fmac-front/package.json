@@ -5,15 +5,15 @@
   "type": "module",
   "license": "MIT",
   "description": "FMAC Front —— 长期维护、可扩展、可升级的企业级微前端平台（主应用 Vue2 + qiankun + pnpm workspace）",
-  "packageManager": "pnpm@11.13.1",
+  "packageManager": "pnpm@8.15.5",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.19.0"
   },
   "scripts": {
-    "dev": "corepack pnpm --filter \"./apps/*\" --parallel run dev",
-    "build": "corepack pnpm --filter \"./apps/*\" run build",
-    "build:apps": "corepack pnpm --filter \"./apps/*\" run build",
-    "build:test": "corepack pnpm --filter \"./apps/*\" run build:test",
+    "dev": "pnpm --filter \"./apps/*\" --parallel run dev",
+    "build": "pnpm --filter \"./apps/*\" run build",
+    "build:apps": "pnpm --filter \"./apps/*\" run build",
+    "build:test": "pnpm --filter \"./apps/*\" run build:test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -23,7 +23,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "precommit": "lint-staged",
-    "check": "corepack pnpm check:arch && corepack pnpm lint && corepack pnpm test",
+    "check": "pnpm check:arch && pnpm lint && pnpm test",
     "clean": "rimraf --glob \"apps/*/dist\" \"packages/*/dist\" .eslintcache",
     "clean:deps": "rimraf --glob \"**/node_modules\"",
     "commitlint": "commitlint --edit"
@@ -40,7 +40,14 @@
     "lint-staged": "^17.0.8",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
+    "undici": "6.19.0",
     "vite-plugin-qiankun": "^1.0.15",
     "vitest": "^4.1.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "cheerio": "1.0.0",
+      "undici": "6.19.0"
+    }
   }
 }

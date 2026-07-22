@@ -27,7 +27,7 @@ export function setupPlatform(vueRouter, options = {}) {
     return config;
   });
   localPlatform.setup({
-    debug: import.meta.env.DEV,
+    debug: process.env.NODE_ENV !== 'production',
     request: { baseURL: options.baseURL || '/api' },
     adapters: inQiankun ? {} : undefined, // qiankun 下复用主应用 UI 适配器
   });
