@@ -56,7 +56,11 @@ module.exports = (_env, argv) => {
           exclude: /node_modules/,
           use: {
             loader: 'babel-loader',
-            options: { presets: [['@babel/preset-env', { targets: { node: '18.19' } }]] },
+            options: {
+              configFile: false,
+              babelrc: false,
+              presets: [['@babel/preset-env', { targets: { node: '18.19' } }]],
+            },
           },
         },
         { test: /\.css$/, use: ['vue-style-loader', 'css-loader'] },
