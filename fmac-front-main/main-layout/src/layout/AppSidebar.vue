@@ -1,75 +1,77 @@
 <template>
-  <aside class="app-sidebar">
-    <div class="app-sidebar__brand">FMAC</div>
-    <nav class="app-sidebar__nav">
-      <router-link
-        v-for="item in menu"
+  <div class="app-sidebar">
+    <ul class="menu-list">
+      <li
+        v-for="item in menuItems"
         :key="item.path"
-        :to="item.path"
-        class="app-sidebar__item"
-        active-class="is-active"
+        :class="{ active: isActive(item.path) }"
+        @click="navigate(item.path)"
       >
-        <span class="app-sidebar__icon">{{ item.icon || '•' }}</span>
-        <span class="app-sidebar__text">{{ item.title }}</span>
-      </router-link>
-    </nav>
-  </aside>
+        {{ item.title }}
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script>
 export default {
   name: 'AppSidebar',
-  props: {
-    menu: { type: Array, default: () => [] },
+  computed: {
+    menuItems() {
+      var menu = this.$store.state.menu;
+      if (menu && menu.length > 0) {
+        return menu.map(function(item) {
+          return { title: item.app_name, path: item.route };
+        });
+      }
+      return [
+        { title: '首页', path: '/home' },
+        { title: '示例应用', path: '/app-demo' }
+      ];
+    }
   },
+  methods: {
+    navigate(path) {
+      if (this.$route.path !== path) {
+        this.$router.push(path);
+      }
+    },
+    isActive(path) {
+      return this.$route.path === path || this.$route.path.startsWith(path + '/');
+    }
+  }
 };
 </script>
 
 <style scoped>
 .app-sidebar {
-  width: 220px;
-  flex: none;
-  background: #1f2733;
-  color: #c9d1d9;
-  display: flex;
-  flex-direction: column;
+  width: 200px;
+  background: #001529;
+  height: 100%;
+  overflow-y: auto;
 }
-.app-sidebar__brand {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #fff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
-.app-sidebar__nav {
-  padding: 12px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.app-sidebar__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: #c9d1d9;
+
+.menu-list li {
+  padding: 14px 20px;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
   font-size: 14px;
+  transition: all 0.2s;
 }
-.app-sidebar__item:hover {
-  background: rgba(255, 255, 255, 0.06);
+
+.menu-list li:hover {
   color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
-.app-sidebar__item.is-active {
-  background: #2f6bff;
+
+.menu-list li.active {
   color: #fff;
-}
-.app-sidebar__icon {
-  width: 20px;
-  text-align: center;
+  background: #1890ff;
 }
 </style>

@@ -1,123 +1,127 @@
-# Phase 4 · 主子应用通信（communication.md）
+# Phase 4 主子应用通信
 
-> 输出文件：`docs/communication.md`
-> 阶段：Phase 4 主子应用通信
-> 结果：✅ 两应用构建通过（端到端联调见 Phase 6）
-
-主应用 `main-layout` 与子应用 `app-demo` 的通信机制。仅通过 **qiankun 全局状态** 与 **window.microApp 桥** 交互（不共享源码）。
 
 ---
 
-## 一、通道总览
 
-| 方向 | 机制 | 载荷 |
-| --- | --- | --- |
-| 主 → 子 | `initGlobalState` + `onGlobalStateChange` | `token` / `userInfo` / `menu` / `permissions`；广播 `event`（如 `global:refresh`） |
-| 子 → 主 | 子应用 `setGlobalState({ from, action })` | `action.type`：`route` / `refresh` / `logout`（含去重 `id`） |
-| 子 → 主（直连） | `window.microApp.*` | `logout()` / `navigate(path)` / `refresh()` / `getGlobalState()` |
+# 一、完成内容
 
----
 
-## 二、主应用侧
+## 主应用发送
 
-### 2.1 initGlobalState（下发）
 
-`src/micro/globalState.js` + `src/platform/bridge.js`：
+通过 initGlobalState 发送以下状态：
 
-```js
-setupGlobalState(
-  { token, userInfo, menu, permissions },      // 初始下发
-  (state) => { if (state.action) handleSubAction(state.action); }  // 订阅子应用上行
-);
-```
 
-- 在 `loadPlatform()` 中于 `setupMicroApps()`（start）**之前**调用 `setupBridge()`，确保子应用挂载即可从 props 拿到全局状态。
-- qiankun 自动把 `onGlobalStateChange` / `setGlobalState` 注入子应用 props。
+- token：用户认证令牌
+- userInfo：用户信息（用户名、角色等）
+- menu：菜单数据
+- permission：权限列表
 
-### 2.2 子应用上行处理
 
-`handleSubAction(action)`（按 `action.id` 去重，避免 setGlobalState 回显重复处理）：
+触发时机：
 
-| action.type | 主应用行为 |
-| --- | --- |
-| `route` | `router.push(action.payload)`（页面跳转） |
-| `refresh` | 广播 `setGlobalState({ event:{ type:'global:refresh', ts } })` |
-| `logout` | 通知后端 → `forceLogout()`（整页回登录） |
 
-### 2.3 window.microApp 桥
+- 登录成功后：syncUserState() + syncMenuState()
+- 状态变更时：通过 store mutations 触发同步
 
-`setupBridge()` 注入：
 
-```js
-window.microApp = {
-  logout(),                 // 子应用 request.js 418 调用
-  navigate(path),           // 主应用跳转
-  refresh(),                // 广播全局刷新
-  getGlobalState(),         // 读取当前 token/userInfo/menu
-};
-```
+## 子应用发送
 
----
 
-## 三、子应用侧
+通过 setGlobalState 发送以下指令：
 
-### 3.1 订阅与保存（`src/context.js`）
 
-- `bindGlobalState(props)`：`props.onGlobalStateChange((next)=>apply(next), true)` 持续同步 `token/userInfo/menu`，并响应 `event: global:refresh`。
-- 上下文用 `Vue.observable` 承载，视图（Home）响应式更新。
-- `unbindGlobalState()`（unmount 调用）：反注册订阅，避免内存泄漏。
+- route：页面跳转（{ action: 'route', path: '/xxx' }）
+- refresh：请求刷新
+- logout：通知主应用退出
 
-### 3.2 上行（`emitToMain`）
 
-```js
-emitToMain({ type: 'route', payload: '/home' });  // 通知主应用跳转
-emitToMain({ type: 'refresh' });                  // 触发全局刷新
-emitToMain({ type: 'logout' });                   // 退出登录
-// 内部：setGlobalState({ from:'app-demo', action:{ ...action, id } })
-```
+## 通信实现
 
-### 3.3 请求侧桥接（`src/utils/request.js`）
 
-- `418` → `window.microApp.logout()`（会话超时通知主应用退出）。
-- `401` → qiankun 下 `window.microApp.logout()`；独立运行自处理。
+### 主应用侧
 
----
 
-## 四、数据流图
+1. micro/globalState.js：封装 qiankun initGlobalState。
+2. platform/bridge.js：
+   - syncUserState：同步用户状态到子应用。
+   - syncMenuState：同步菜单状态到子应用。
+   - notifyLogout：通知子应用退出。
+   - initBridge：监听子应用发来的状态变更。
 
-```
-登录成功
-  main: store(token,userInfo) → loadPlatform
-        → getMenu → store.menu
-        → setupBridge: initGlobalState({token,userInfo,menu,permissions}) + window.microApp
-        → registerMicroApps + start
-  用户进入 /app-demo
-  qiankun: mount(app-demo, props{token,userInfo,menu,onGlobalStateChange,setGlobalState})
-  sub: setContext(props) + bindGlobalState(props)  ← 主→子 初始 + 持续同步
 
-子应用交互
-  sub: emitToMain({type}) ──setGlobalState──▶ main.onGlobalStateChange ─▶ handleSubAction
-                                                     route/refresh/logout
-  sub.request 418 ── window.microApp.logout() ──▶ main.doLogout ─▶ forceLogout
-```
+### 子应用侧
+
+
+1. context.js：
+   - setActions：存储主应用传入的 actions。
+   - navigateTo：请求主应用路由跳转。
+   - requestRefresh：请求主应用刷新。
+   - requestLogout：请求主应用退出。
+2. main.js：
+   - mount 时调用 setActions 存储 actions。
+   - 监听 onGlobalStateChange 接收主应用状态。
+   - 暴露 window.microApp.logout 供 request.js 调用。
+
+
+## 数据流
+
+
+主 → 子：
+
+
+登录成功 → syncUserState/syncMenuState → setGlobalState → 子应用 onGlobalStateChange 回调
+
+
+子 → 主：
+
+
+子应用操作 → context.js 方法 → setGlobalState → 主应用 onGlobalStateChange 回调 → bridge.js 处理
+
 
 ---
 
-## 五、涉及文件
 
-**main-layout**：`src/micro/globalState.js`（新增）、`src/platform/bridge.js`（新增）、`src/platform/session.js`（loadPlatform 接入 setupBridge）。
+# 二、修改文件
 
-**app-demo**：`src/context.js`（响应式 + bindGlobalState + emitToMain + 事件）、`src/main.js`（mount 绑定 / unmount 反注册）、`src/views/Home.vue`（通信演示按钮）。
+
+主应用：
+- src/views/Login.vue（登录后同步状态）
+- src/platform/bridge.js（通信桥梁）
+
+子应用：
+- src/main.js（存储 actions，暴露 microApp）
+- src/context.js（通信方法）
+
 
 ---
 
-## 六、验证
 
-- `main-layout` 与 `app-demo` `npm run build` 均 exit 0，无 ERROR。
-- 端到端（两应用同时运行，浏览器内挂载 + 状态同步 + action 上行 + logout 桥）在 **Phase 6** 验收。
+# 三、测试结果
+
+
+主应用构建：通过。
+子应用构建：通过。
+
 
 ---
 
-## 七、下一阶段
 
-Phase 5 部署能力：`.env.dev/.env.test/.env.prod`、独立构建/部署、nginx、子应用注册地址配置。输出 `docs/deploy.md`。
+# 四、遇到问题
+
+
+无。
+
+
+---
+
+
+# 五、下一阶段
+
+
+Phase 5：部署能力建设
+
+- 环境配置完善
+- Nginx 配置
+- 独立部署方案

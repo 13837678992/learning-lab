@@ -1,98 +1,156 @@
-# Phase 1 · 主应用初始化（layout-init.md）
+# Phase 1 主应用初始化
 
-> 输出文件：`docs/layout-init.md`
-> 阶段：Phase 1 主应用初始化
-> 结果：✅ 构建通过
 
 ---
 
-## 一、目标
 
-建设 `main-layout` 主应用（基座）可构建骨架：Vue2 项目结构、Webpack4 配置、qiankun 依赖、Vue 入口、路由配置、axios 基础封装。
+# 一、完成内容
+
+
+## 基础工程
+
+
+1. 创建 main-layout 目录及完整工程结构。
+2. package.json：声明 Vue2、Webpack4、qiankun、axios 等依赖。
+3. webpack.config.js：完整 Webpack4 配置，支持 Vue SFC、Babel、CSS、静态资源。
+4. babel.config.js：@babel/preset-env 配置。
+5. 环境配置：.env.dev / .env.test / .env.prod。
+6. public/index.html：入口 HTML 模板。
+
+
+## qiankun 基础
+
+
+1. main.js 中实现 bootstrap / mount / unmount 生命周期。
+2. registerMicroApps 注册子应用。
+3. start 启动 qiankun（开启 experimentalStyleIsolation）。
+4. initGlobalState 初始化全局状态。
+
+
+## 路由
+
+
+1. Vue Router（history 模式）。
+2. 路由定义：Login、Home、AppDemo。
+3. Layout 布局组件（Header + Sidebar + Content）。
+4. 路由守卫：beforeEach（权限校验）、afterEach（页面标题）。
+
+
+## Axios 封装
+
+
+1. request.js：基础 axios 实例。
+2. 请求拦截：token 注入。
+3. 响应拦截：401 跳转登录、418 强制退出、网络异常处理。
+
+
+## 其他
+
+
+1. store/index.js：Vuex 状态管理（token、userInfo、menu）。
+2. utils/auth.js：token 存取。
+3. utils/logout.js：退出登录。
+4. utils/message.js：消息提示。
+5. api/user.js、api/menu.js：API 接口。
+6. mock/index.js：开发环境 mock 数据。
+
 
 ---
 
-## 二、目录结构
 
-```
+# 二、目录结构
+
+
 main-layout/
-├── package.json              # 独立依赖与脚本（npm）
-├── babel.config.js           # CommonJS，preset-env
-├── webpack.config.js         # CommonJS，webpack4 SPA 基座
+├── .env.dev
+├── .env.test
+├── .env.prod
 ├── .gitignore
+├── babel.config.js
+├── mock/
+│   └── index.js
+├── package.json
 ├── public/
-│   └── index.html            # HtmlWebpackPlugin 模板
-└── src/
-    ├── main.js               # Vue 入口（挂载 #app）
-    ├── App.vue               # 根组件（router-view 壳）
-    ├── router/
-    │   ├── index.js          # VueRouter(history)
-    │   └── routes.js         # 静态路由：/login /home
-    ├── views/
-    │   ├── Home.vue
-    │   └── Login.vue         # 占位登录页
-    └── utils/
-        └── request.js        # axios 基础实例 + 拦截骨架
-```
+│   └── index.html
+├── src/
+│   ├── api/
+│   │   ├── menu.js
+│   │   └── user.js
+│   ├── App.vue
+│   ├── layout/
+│   │   ├── AppHeader.vue
+│   │   ├── AppSidebar.vue
+│   │   └── Layout.vue
+│   ├── main.js
+│   ├── micro/
+│   │   ├── apps.js
+│   │   └── globalState.js
+│   ├── router/
+│   │   ├── guards.js
+│   │   ├── index.js
+│   │   └── routes.js
+│   ├── store/
+│   │   └── index.js
+│   ├── utils/
+│   │   ├── auth.js
+│   │   ├── logout.js
+│   │   ├── message.js
+│   │   └── request.js
+│   └── views/
+│       ├── Home.vue
+│       └── Login.vue
+└── webpack.config.js
+
 
 ---
 
-## 三、关键配置
 
-### package.json（脚本）
+# 三、测试结果
 
-| 脚本 | 命令 |
-| --- | --- |
-| `serve` / `dev` | `NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --mode development` |
-| `build` | `NODE_OPTIONS=--openssl-legacy-provider webpack --mode production` |
-| `build:test` | 追加 `APP_MODE=test` |
 
-- 依赖：`vue@2.7.16`、`vue-router@3.6.5`、`qiankun@2.10.16`、`axios@1.7.9`。
-- devDeps：`webpack@4.47.0`、`webpack-cli@3.3.12`、`webpack-dev-server@3.11.3`、`vue-loader@15.11.1`、`vue-template-compiler@2.7.16`、`@babel/*@7.24.0` 等。
+## 构建测试
 
-### webpack.config.js
 
-- CommonJS（`module.exports = (env, argv) => ({...})`）。
-- `entry: src/main.js`；`output.publicPath` 取 `process.env.PUBLIC_PATH || '/'`。
-- loaders：`vue-loader` / `babel-loader` / `vue-style-loader`+`css-loader` / `file-loader`。
-- plugins：`VueLoaderPlugin`、`HtmlWebpackPlugin`、`DefinePlugin`（注入 `NODE_ENV` / `APP_MODE` / `API_BASE` / `SUBAPP_DEMO_ENTRY`）。
-- devServer：`port 7100`、`historyApiFallback`、`hot`。
+执行：npm run build
 
-### babel.config.js
+结果：通过
 
-- CommonJS；`@babel/preset-env` 面向现代浏览器；`import()` 交由 webpack 代码分割。
+Webpack 4.47.0 编译成功，生成 dist 目录。
 
----
 
-## 四、构建验证
+## 依赖安装
 
-```
-$ npm run build
-Version: webpack 4.47.0
-Time: 514ms
-Built at: 2026/07/24 08:25:06
-EXIT=0   （无 ERROR / 无 WARNING）
 
-dist/
-├── index.html
-└── assets/
-    ├── main.56d014f0.js     # 入口
-    ├── 1.e3040100.js        # 路由懒加载 chunk（Home）
-    └── 2.54f89efd.js        # 路由懒加载 chunk（Login）
-```
+执行：npm install
 
-**结论**：webpack4 + babel + Vue2 工具链在 Node v24.18.0（`--openssl-legacy-provider`）下构建通过；路由懒加载（`import()` 代码分割）正常。
+结果：通过
+
+所有依赖安装成功，无 peer dependency 冲突。
+
 
 ---
 
-## 五、说明与边界
 
-- 本阶段基座为普通 SPA，**尚未接入 qiankun 注册 / 启动**（qiankun 依赖已装，逻辑留待 Phase 2）。
-- `request.js` 仅基础实例，token 注入与 401/418 等在 Phase 2 补齐。
-- Login 为占位页，直接跳 Home；真实登录在 Phase 2。
+# 四、遇到问题
+
+
+1. style-loader@3.x 和 css-loader@6.x 不兼容 Webpack4（peer dependency 要求 webpack 5）。
+   解决：降级为 style-loader@2.x 和 css-loader@5.x。
+
+
+2. micro/globalState.js 导出名与 qiankun 的 initGlobalState 冲突。
+   解决：使用 import alias 重命名 qiankun 的导入。
+
 
 ---
 
-## 六、下一阶段
 
-Phase 2 主应用能力建设：qiankun（registerMicroApps/start）、登录（token/session/单点登录）、菜单（/api/menu 动态加载子应用）、axios 完整拦截（401/418）、路由守卫（beforeEach/afterEach）。
+# 五、下一阶段
+
+
+Phase 2：主应用能力建设
+
+- 完善 session 超时检测
+- 登录后动态获取菜单
+- 菜单驱动动态路由和子应用配置
+- 完善路由控制和 axios 增强

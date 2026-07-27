@@ -1,29 +1,25 @@
-/**
- * 从菜单派生 qiankun 子应用注册表（单一事实源：菜单）。
- * 菜单项含 microApp 字段者即为子应用；entry 允许经环境变量覆盖以适配部署。
- */
-const ENTRY_OVERRIDES = {
-  'app-demo': process.env.SUBAPP_DEMO_ENTRY,
-};
+import store from '@/store';
 
-export function buildMicroApps(menu) {
-  const result = [];
-  const seen = new Set();
-
-  const walk = (items) => {
-    (items || []).forEach((item) => {
-      if (item.microApp && !seen.has(item.microApp)) {
-        seen.add(item.microApp);
-        result.push({
-          name: item.microApp,
-          entry: ENTRY_OVERRIDES[item.microApp] || item.entry,
-          activeRule: item.activeRule || item.path,
-        });
-      }
-      if (item.children) walk(item.children);
-    });
-  };
-
-  walk(menu);
-  return result;
+export function getApps() {
+  var menu = store.state.menu;
+  if (menu && menu.length > 0) {
+    return menu
+      .filter(function(item) { return item.entry; })
+      .map(function(item) {
+        return {
+          name: item.app_code,
+          entry: item.entry,
+          container: '#subapp-container',
+          activeRule: item.route
+        };
+      });
+  }
+  return [
+    {
+      name: 'app-demo',
+      entry: process.env.VUE_APP_DEMO_ENTRY || '//localhost:9001',
+      container: '#subapp-container',
+      activeRule: '/app-demo'
+    }
+  ];
 }

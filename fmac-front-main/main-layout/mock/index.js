@@ -1,75 +1,62 @@
-/**
- * 开发态 Mock 后端 —— 仅用于 webpack-dev-server（`npm run serve`）。
- * 生产环境由真实后端提供同名接口；本文件不参与生产构建。
- * 见 CLAUDE.md 第六节：Node 文件使用 CommonJS。
- *
- * 提供接口：
- *   POST /api/login       登录
- *   POST /api/logout      退出
- *   GET  /api/user/info   用户信息
- *   GET  /api/menu        菜单（含子应用注册信息）
- */
-
-// 菜单：带 microApp 字段者会被主应用注册为 qiankun 子应用。
-const MENU = [
-  { title: '首页', path: '/home', icon: '🏠' },
-  {
-    title: '示例子应用',
-    path: '/app-demo',
-    icon: '🧩',
-    microApp: 'app-demo',
-    entry: '//localhost:7201',
-    activeRule: '/app-demo',
-  },
-];
-
-function readJson(req) {
-  return new Promise((resolve) => {
-    let data = '';
-    req.on('data', (chunk) => {
-      data += chunk;
-    });
-    req.on('end', () => {
-      try {
-        resolve(JSON.parse(data || '{}'));
-      } catch (e) {
-        resolve({});
-      }
-    });
-    req.on('error', () => resolve({}));
-  });
-}
-
-module.exports = function setupMock(app) {
-  app.post('/api/login', async (req, res) => {
-    const body = await readJson(req);
-    const username = body.username || 'admin';
-    res.json({
-      code: 0,
-      message: 'ok',
-      data: {
-        token: `mock-token-${Date.now()}`,
-        userInfo: {
-          username,
-          name: username === 'admin' ? '管理员' : username,
-          roles: ['admin'],
+module.exports = function(app) {
+  app.post('/api/user/login', function(req, res) {
+    var body = req.body || {};
+    if (body.username && body.password) {
+      res.json({
+        code: 200,
+        data: {
+          token: 'mock-token-' + Date.now(),
+          username: body.username
         },
-      },
-    });
+        message: 'success'
+      });
+    } else {
+      res.status(400).json({ code: 400, message: '用户名和密码不能为空' });
+    }
   });
 
-  app.post('/api/logout', (req, res) => {
-    res.json({ code: 0, message: 'ok', data: null });
-  });
-
-  app.get('/api/user/info', (req, res) => {
+  app.get('/api/user/info', function(req, res) {
+    var auth = req.headers.authorization;
+    if (!auth) {
+      res.status(401).json({ code: 401, message: '未授权' });
+      return;
+    }
     res.json({
-      code: 0,
-      data: { username: 'admin', name: '管理员', roles: ['admin'] },
+      code: 200,
+      data: {
+        username: 'admin',
+        role: '管理员',
+        avatar: ''
+      },
+      message: 'success'
     });
   });
 
-  app.get('/api/menu', (req, res) => {
-    res.json({ code: 0, data: MENU });
+  app.get('/api/menu', function(req, res) {
+    var auth = req.headers.authorization;
+    if (!auth) {
+      res.status(401).json({ code: 401, message: '未授权' });
+      return;
+    }
+    res.json({
+      code: 200,
+      data: [
+        {
+          app_code: 'home',
+          app_name: '首页',
+          entry: '',
+          route: '/home',
+          permission: ['view']
+        },
+        {
+          app_code: 'app-demo',
+          app_name: '示例应用',
+          entry: '//localhost:9001',
+          route: '/app-demo',
+          permission: ['view']
+        }
+      ],
+      message: 'success'
+    });
   });
 };

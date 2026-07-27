@@ -1,21 +1,72 @@
 import Vue from 'vue';
 import App from './App.vue';
 import router from './router';
-import { store } from './store';
-import { loadPlatform } from './platform/session';
+import store from './store';
+import { registerMicroApps, start } from 'qiankun';
+import { getApps } from './micro/apps';
+import { initGlobalState } from './micro/globalState';
+import { getToken } from './utils/auth';
+import { start as startSession } from './platform/session';
+import { initBridge } from './platform/bridge';
 
 Vue.config.productionTip = false;
 
-// 1) 创建并挂载基座应用（Layout 内含子应用容器 #subapp-viewport）。
-new Vue({
-  router,
-  render: (h) => h(App),
-}).$mount('#app');
+let instance = null;
 
-// 2) 若本地已有 token（已登录），启动即装配平台：拉菜单 + 注册并启动 qiankun。
-//    token 失效时，后续请求 401 会触发强制登出。
-if (store.state.token) {
-  loadPlatform().catch((e) => {
-    console.warn('[platform] 装配失败：', e && e.message);
-  });
+function render(props = {}) {
+  var container = props.container;
+  instance = new Vue({
+    router: router,
+    store: store,
+    render: function(h) { return h(App); }
+  }).$mount(container ? container.querySelector('#app') : '#app');
 }
+
+if (!window.__POWERED_BY_QIANKUN__) {
+  var token = getToken();
+  if (token) {
+    store.commit('SET_TOKEN', token);
+    startSession();
+  }
+  render();
+  initBridge();
+}
+
+function storeProps(props) {
+  var onGlobalStateChange = props.onGlobalStateChange;
+  var setGlobalState = props.setGlobalState;
+  var offGlobalStateChange = props.offGlobalStateChange;
+  if (onGlobalStateChange) {
+    store.commit('SET_GLOBAL_STATE', { onGlobalStateChange: onGlobalStateChange, setGlobalState: setGlobalState, offGlobalStateChange: offGlobalStateChange });
+  }
+}
+
+export async function bootstrap() {
+  console.log('[main-layout] bootstrap');
+}
+
+export async function mount(props) {
+  console.log('[main-layout] mount');
+  storeProps(props);
+  render(props);
+  initBridge();
+}
+
+export async function unmount() {
+  console.log('[main-layout] unmount');
+  if (instance && instance.$el && instance.$el.parentNode) {
+    instance.$el.parentNode.removeChild(instance.$el);
+  }
+  instance.$destroy();
+  instance = null;
+}
+
+registerMicroApps(getApps());
+start({
+  sandbox: { experimentalStyleIsolation: true }
+});
+initGlobalState({
+  user: { token: getToken(), userInfo: null },
+  menu: [],
+  permission: []
+});

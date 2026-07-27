@@ -1,62 +1,71 @@
 <template>
-  <header class="app-header">
-    <div class="app-header__title">FMAC 微前端平台</div>
-    <div class="app-header__right">
-      <span class="app-header__user">{{ displayName }}</span>
-      <button class="app-header__logout" type="button" @click="$emit('logout')">退出登录</button>
+  <div class="app-header">
+    <div class="header-left">
+      <h1 class="logo">微前端系统</h1>
     </div>
-  </header>
+    <div class="header-right">
+      <span class="username">{{ userInfo ? userInfo.username : '' }}</span>
+      <button class="logout-btn" @click="handleLogout">退出</button>
+    </div>
+  </div>
 </template>
 
 <script>
+import { logout } from '@/utils/logout';
+
 export default {
   name: 'AppHeader',
-  props: {
-    user: { type: Object, default: null },
-  },
   computed: {
-    displayName() {
-      return (this.user && (this.user.name || this.user.username)) || '未登录';
-    },
+    userInfo() {
+      return this.$store.state.userInfo;
+    }
   },
+  methods: {
+    handleLogout() {
+      logout();
+    }
+  }
 };
 </script>
 
 <style scoped>
 .app-header {
   height: 56px;
-  flex: none;
+  background: #001529;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: #fff;
-  border-bottom: 1px solid #eef0f3;
+  color: #fff;
 }
-.app-header__title {
-  font-size: 16px;
+
+.logo {
+  font-size: 18px;
   font-weight: 600;
+  color: #fff;
 }
-.app-header__right {
+
+.header-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
-.app-header__user {
-  color: #4e5969;
+
+.username {
   font-size: 14px;
 }
-.app-header__logout {
-  height: 32px;
-  padding: 0 14px;
-  border: 1px solid #dcdfe6;
-  border-radius: 6px;
-  background: #fff;
-  color: #4e5969;
+
+.logout-btn {
+  padding: 4px 12px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 13px;
 }
-.app-header__logout:hover {
-  border-color: #2f6bff;
-  color: #2f6bff;
+
+.logout-btn:hover {
+  border-color: #fff;
 }
 </style>

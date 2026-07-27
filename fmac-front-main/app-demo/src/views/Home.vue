@@ -1,151 +1,80 @@
 <template>
   <div class="home">
-    <h2>子应用首页</h2>
-
-    <section class="ctx">
-      <h4>来自主应用的上下文（onGlobalStateChange 同步）</h4>
-      <ul>
-        <li>token：<code>{{ token || '（无）' }}</code></li>
-        <li>用户：{{ userName || '（无）' }}</li>
-        <li>菜单数：{{ menuCount }}</li>
-        <li>最近全局刷新：{{ lastRefresh ? new Date(lastRefresh).toLocaleTimeString() : '（无）' }}</li>
-      </ul>
-    </section>
-
-    <section class="block">
-      <h4>数据请求（子应用独立 request.js）</h4>
-      <div class="actions">
-        <button @click="loadSummary">加载示例数据</button>
-        <button class="warn" @click="testExpire">模拟 418 → 通知主应用退出</button>
-        <button class="warn" @click="testUnauth">模拟 401 → 未登录</button>
-      </div>
-      <pre v-if="summary" class="result">{{ summaryText }}</pre>
-    </section>
-
-    <section class="block">
-      <h4>子 → 主 通信（setGlobalState 上行 action）</h4>
-      <div class="actions">
-        <button @click="notifyRoute">通知主应用跳转 /home</button>
-        <button @click="notifyRefresh">触发全局刷新</button>
-        <button class="warn" @click="notifyLogout">退出登录</button>
-      </div>
-    </section>
+    <h1>示例子应用 - 首页</h1>
+    <p>这是 app-demo 子应用的首页。</p>
+    <div class="info" v-if="userToken">
+      <p>当前 Token：{{ userToken.substring(0, 20) }}...</p>
+    </div>
+    <div class="actions">
+      <router-link to="/about" class="btn">关于页面</router-link>
+    </div>
   </div>
 </template>
 
 <script>
-import { getContext, emitToMain } from '@/context';
-import { getSummary, triggerExpire, triggerUnauth } from '@/api';
-
 export default {
   name: 'Home',
   data() {
-    return { summary: null };
+    return {
+      userToken: ''
+    };
   },
-  computed: {
-    token() {
-      return getContext().token;
-    },
-    userName() {
-      const u = getContext().userInfo;
-      return u && (u.name || u.username);
-    },
-    menuCount() {
-      return (getContext().menu || []).length;
-    },
-    lastRefresh() {
-      return getContext().lastRefresh;
-    },
-    summaryText() {
-      return JSON.stringify(this.summary, null, 2);
-    },
+  created() {
+    this.$root.$on('global-state-change', function(state) {
+      if (state.user && state.user.token) {
+        this.userToken = state.user.token;
+      }
+    }.bind(this));
   },
-  methods: {
-    async loadSummary() {
-      try {
-        this.summary = await getSummary();
-      } catch (e) {
-        /* 演示用 */
+  mounted() {
+    this.$root.$once('global-state-change', function(state) {
+      if (state.user && state.user.token) {
+        this.userToken = state.user.token;
       }
-    },
-    async testExpire() {
-      try {
-        await triggerExpire();
-      } catch (e) {
-        /* 418 已由拦截器触发 window.microApp.logout() */
-      }
-    },
-    async testUnauth() {
-      try {
-        await triggerUnauth();
-      } catch (e) {
-        /* 401 已由拦截器处理 */
-      }
-    },
-    notifyRoute() {
-      emitToMain({ type: 'route', payload: '/home' });
-    },
-    notifyRefresh() {
-      emitToMain({ type: 'refresh' });
-    },
-    notifyLogout() {
-      emitToMain({ type: 'logout' });
-    },
-  },
+    }.bind(this));
+  }
 };
 </script>
 
 <style scoped>
 .home {
-  max-width: 760px;
+  padding: 20px;
 }
-.home h2 {
-  margin-top: 0;
+
+.home h1 {
+  margin-bottom: 16px;
+  color: #333;
 }
-.ctx,
-.block {
+
+.home p {
+  margin-bottom: 12px;
+  color: #666;
+}
+
+.info {
+  background: #f5f7fa;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 16px 0;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.actions {
   margin-top: 16px;
 }
-.ctx {
-  padding: 12px 16px;
-  background: #f2fbf8;
-  border: 1px solid #cdeee5;
-  border-radius: 8px;
-}
-.ctx h4,
-.block h4 {
-  margin: 0 0 8px;
-}
-.ctx ul {
-  margin: 0;
-  padding-left: 18px;
-  line-height: 1.9;
-}
-.actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.actions button {
-  height: 34px;
-  padding: 0 14px;
-  border: 1px solid #0e7a6b;
-  background: #0e7a6b;
+
+.btn {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #409eff;
   color: #fff;
-  border-radius: 6px;
-  cursor: pointer;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
 }
-.actions button.warn {
-  background: #fff;
-  color: #e37318;
-  border-color: #e37318;
-}
-.result {
-  margin-top: 12px;
-  padding: 12px;
-  background: #0f172a;
-  color: #a7f3d0;
-  border-radius: 8px;
-  overflow: auto;
+
+.btn:hover {
+  background: #66b1ff;
 }
 </style>

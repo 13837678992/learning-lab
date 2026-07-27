@@ -1,39 +1,40 @@
-/**
- * 基座路由。
- * - /login 独立页（公开）。
- * - / 由 Layout 承载，children 为基座自有页面与子应用占位路由。
- * - 子应用路由（meta.micro）：容器 #subapp-viewport 常驻于 Layout；
- *   此处仅需匹配 /app-demo 及其子路径，避免命中通配 * 而回跳。
- *   子路径通过嵌套 * 通配吸收，保持父级匹配稳定。
- */
-const EmptyMicroView = { name: 'MicroView', render: (h) => h() };
+import Layout from '@/layout/Layout.vue';
+import Login from '@/views/Login.vue';
+import Home from '@/views/Home.vue';
 
-export default [
+export const routes = [
   {
     path: '/login',
-    name: 'login',
-    component: () => import('@/views/Login.vue'),
-    meta: { public: true, title: '登录' },
+    name: 'Login',
+    component: Login,
+    meta: { requiresAuth: false }
   },
   {
     path: '/',
-    component: () => import('@/layout/Layout.vue'),
+    component: Layout,
     redirect: '/home',
     children: [
       {
         path: 'home',
-        name: 'home',
-        component: () => import('@/views/Home.vue'),
-        meta: { title: '首页' },
-      },
-      {
-        path: 'app-demo',
-        name: 'app-demo',
-        component: EmptyMicroView,
-        meta: { title: '示例子应用', micro: true },
-        children: [{ path: '*', component: EmptyMicroView }],
-      },
-    ],
+        name: 'Home',
+        component: Home,
+        meta: { requiresAuth: true, title: '首页' }
+      }
+    ]
   },
-  { path: '*', redirect: '/home' },
+  {
+    path: '/app-demo',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'AppDemo',
+        meta: { requiresAuth: true, title: '示例应用' }
+      }
+    ]
+  },
+  {
+    path: '*',
+    redirect: '/home'
+  }
 ];

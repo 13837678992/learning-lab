@@ -1,34 +1,24 @@
 <template>
-  <div id="app-root">
+  <div id="app">
     <router-view />
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App',
+  name: 'App'
 };
 </script>
 
 <style>
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
-html,
-body,
-#app,
-#app-root {
+
+html, body, #app {
   height: 100%;
-  margin: 0;
-}
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
-    sans-serif;
-  color: #1f2329;
-  background: #f5f6f8;
-}
-a {
-  color: #2f6bff;
-  text-decoration: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 </style>

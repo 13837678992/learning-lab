@@ -1,31 +1,30 @@
 {
   "name": "app-demo",
   "version": "1.0.0",
-  "private": true,
-  "description": "FMAC 微前端子应用示例 · Vue2 + Webpack4(UMD) + axios · 支持独立运行与 qiankun 接入",
+  "description": "微前端子应用示例",
   "scripts": {
-    "serve": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --mode development",
-    "dev": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --mode development",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider webpack --mode production",
-    "build:test": "NODE_OPTIONS=--openssl-legacy-provider APP_MODE=test webpack --mode production"
+    "serve": "webpack-dev-server --mode development --env dev",
+    "build": "webpack --mode production --env prod",
+    "build:dev": "webpack --mode development --env dev"
   },
   "dependencies": {
-    "axios": "1.7.9",
-    "vue": "2.7.16",
-    "vue-router": "3.6.5"
+    "axios": "^1.6.0",
+    "vue": "^2.7.16",
+    "vue-router": "^3.6.5"
   },
   "devDependencies": {
-    "@babel/core": "7.24.0",
-    "@babel/preset-env": "7.24.0",
-    "babel-loader": "8.3.0",
-    "css-loader": "5.2.7",
-    "file-loader": "6.2.0",
-    "html-webpack-plugin": "4.5.2",
-    "vue-loader": "15.11.1",
-    "vue-style-loader": "4.1.3",
-    "vue-template-compiler": "2.7.16",
-    "webpack": "4.47.0",
-    "webpack-cli": "3.3.12",
-    "webpack-dev-server": "3.11.3"
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-loader": "^8.3.0",
+    "css-loader": "^5.2.7",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^4.5.2",
+    "style-loader": "^2.0.0",
+    "url-loader": "^4.1.1",
+    "vue-loader": "^15.11.1",
+    "vue-template-compiler": "^2.7.16",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.3"
   }
 }

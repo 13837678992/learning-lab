@@ -1,110 +1,757 @@
 # Claude Code Context State
 
-> Claude Code 长任务状态文件。每次执行必须优先读取。
-> 配套：`docs/phase-log.md`（阶段流水）、`docs/current-analysis.md`（Phase 0 分析）。
+
+> Claude Code 长任务状态管理文件。
+>
+> 每次执行任务前必须优先读取。
+>
+> 用于保存当前项目执行上下文，避免长任务过程中重复分析整个项目。
+
+
+---
+
+# 一、文件用途
+
+
+本文件负责记录：
+
+
+- 当前执行阶段
+- 已完成任务
+- 修改文件
+- 测试结果
+- 当前问题
+- 下一阶段计划
+
+
+配套文件：
+
+
+docs/phase-log.md
+
+用于记录完整阶段流水。
+
+
+docs/current-analysis.md
+
+用于保存 Phase 0 项目分析结果。
+
+
+---
+
+# 二、Claude 执行规则
+
+
+每次执行任务前：
+
+必须读取：
+
+
+1. CLAUDE.md
+
+2. TASK.md
+
+3. docs/context-state.md
+
+4. docs/phase-log.md
+
+
+
+禁止：
+
+- 跳过状态读取
+- 无上下文直接修改代码
+- 重复扫描整个项目
+
+
+---
+
+# 三、当前项目状态
+
+
+## 项目名称
+
+
+fmac-front-main
+
 
 ---
 
 ## 当前阶段
 
-**Phase 5 已完成 → 进入 Phase 6（测试验收 + 最终文档）**
+
+Phase:
+
+
+已完成
+
 
 ---
 
-## 项目状态
+## 当前执行目标
 
-### 已完成
 
-- **Phase 0 项目分析**
-  - 分析目标项目 `fmac-front-main`（空白）与参考实现 `../fmac-front`（qiankun monorepo）。
-  - 锁定技术栈与精确依赖版本。
-  - 验证 Node v24.18.0 + webpack4 可行（`--openssl-legacy-provider` + md4 通过）。
-  - 网络可用窗口内完成两应用 `npm install`，依赖已落地（离线可构建）。
-  - 输出 `docs/current-analysis.md`、`docs/context-state.md`、`docs/phase-log.md`。
+建设企业级 qiankun 微前端脚手架。
 
-- **Phase 1 主应用初始化**
-  - 新增 `main-layout/` 全套骨架（babel/webpack CommonJS、入口、路由、Login/Home、axios 基础封装）。
-  - `npm run build` **exit 0**（webpack 4.47.0，514ms，无 ERROR/WARNING），懒加载 chunk 正常。
-  - 输出 `docs/layout-init.md`。
 
-- **Phase 2 主应用能力建设**
-  - qiankun（registerMicroApps/start/生命周期）、登录（token/session/单点登录/退出）、菜单（/api/menu 驱动子应用注册）、axios 完整拦截（401/418/网络/服务异常）、路由守卫、Layout 布局、dev-server Mock 后端。
-  - 端口迁移 7100→**7200**（规避同机参考项目占用）；生产构建前清理 dist。
-  - `npm run build` exit 0；`npm run serve`（:7200）联调通过（/、/api/menu、/api/login、/home）。
-  - 输出 `docs/layout.md`、`docs/phase2-summary.md`。
+目标：
 
-- **Phase 3 子应用建设 app-demo**
-  - UMD webpack（library/umd/jsonpFunction）、`public-path.js`、生命周期 bootstrap/mount/unmount + 独立运行、双模式路由 base、独立 `request.js`（401/418→`window.microApp.logout()`）、dev mock。
-  - `npm run build` exit 0（UMD 产物）；`npm run serve`（:7201）联调通过（含 CORS 头、summary/expire、fallback）。
-  - 输出 `docs/subapp.md`。
+实现：
 
-- **Phase 4 主子应用通信**
-  - main：`micro/globalState.js`、`platform/bridge.js`（initGlobalState 下发 + 子应用 action 派发 + window.microApp 桥 + 去重）、session 接入。
-  - sub：`context.js`（响应式 + onGlobalStateChange 订阅 + emitToMain 上行 + 事件 + unbind）、main.js 绑定/反注册、Home 演示按钮。
-  - 两应用 `npm run build` exit 0；端到端联调留 Phase 6。
-  - 输出 `docs/communication.md`。
+- 主应用独立运行
+- 子应用独立运行
+- 主应用独立部署
+- 子应用独立部署
+- 主子应用通信
+- 登录认证
+- 菜单权限管理
+- session管理
 
-- **Phase 5 部署能力建设**
-  - 两应用 webpack 增加 `.env.{dev,test,prod}` 读取（DefinePlugin 注入 API_BASE/PUBLIC_PATH/SUBAPP_DEMO_ENTRY）；新增 6 个 env 文件。
-  - nginx 配置（单域名 root 方案 + 多域名 CORS 方案）。
-  - prod/test 构建注入值经产物 grep 校验通过。
-  - 输出 `docs/deploy.md`、`deploy/nginx/*.conf`。
-
-### 进行中
-
-- Phase 6：测试验收（主/子/通信端到端）+ 补齐最终文档（architecture/develop/api/test-report）。
-
-### 待办
-
-- 无（Phase 6 为最后阶段）。
 
 ---
 
-## 目标架构（独立应用模式）
+# 四、技术约束
 
-```
-fmac-front-main/
-├── main-layout/   主应用（基座）  端口 7200
-├── app-demo/      子应用示例       端口 7201
-└── docs/
-```
 
-技术栈：Vue `2.7.16` · vue-router `3.6.5` · qiankun `2.10.16`（仅基座） · axios `1.7.9` · webpack `4.47.0` · JS（配置用 CommonJS）。
+固定技术栈：
 
-Node：`v24.18.0`；所有构建脚本前置 `NODE_OPTIONS=--openssl-legacy-provider`。
 
----
+Vue2
 
-## 已安装依赖（离线可用）
+Webpack4
 
-- `main-layout/node_modules`：webpack 4.47.0、vue 2.7.16、vue-router 3.6.5、qiankun 2.10.16、axios 1.7.9、babel/loader 全套（906 包）。
-- `app-demo/node_modules`：webpack 4.47.0、vue 2.7.16、vue-router 3.6.5、axios 1.7.9、babel/loader 全套（902 包）。
+qiankun
 
----
+axios
 
-## 已修改 / 新增文件
+JavaScript
 
-- `main-layout/package.json`（新增）
-- `app-demo/package.json`（新增）
-- `docs/current-analysis.md`（重写为正确的分析内容）
-- `docs/context-state.md`（本文件，重建）
-- `docs/phase-log.md`（新增）
+Node.js 18.19.0
 
----
 
-## 当前问题 / 注意
 
-- **网络间歇不可用**：依赖已提前安装，后续构建 / 运行不依赖网络。若需新增依赖，须等网络恢复。
-- **webpack4 需 openssl flag**：脚本已内置 `NODE_OPTIONS=--openssl-legacy-provider`（Windows 需改用 cross-env，见部署文档）。
+配置体系：
+
+CommonJS
+
+
+禁止：
+
+- Vue3
+- Webpack5
+- TypeScript
+- 其他微前端框架
+
 
 ---
 
-## 下一阶段目标（Phase 6）
+# 五、架构状态
 
-测试验收：主应用（独立启动/登录/菜单/session/子应用加载）、子应用（独立启动/qiankun/生命周期/request/异常）、通信（数据同步/跳转/参数/logout）端到端验证；输出 `docs/test-report.md`，并补齐最终文档 `architecture.md` / `develop.md` / `api.md`。
+
+## 当前目录
+
+
+
+fmac-front-main
+
+├── main-layout
+
+├── app-demo
+
+├── docs
+
+├── CLAUDE.md
+
+└── TASK.md
+
+
 
 ---
 
-## Claude 执行规则
+# 六、阶段执行记录
 
-每完成一个 Phase 必须更新本文件与 `phase-log.md`，内容含：当前阶段、已完成、修改文件、测试结果、遇到问题、下一阶段目标。长任务优先读取 `context-state.md` / `phase-log.md`，仅分析当前阶段相关代码，避免全量重扫。
+
+## Phase 0 项目分析
+
+
+状态：
+
+已完成
+
+
+目标：
+
+分析当前项目结构。
+
+
+检查：
+
+
+- package.json
+- webpack配置
+- babel配置
+- Vue入口
+- qiankun代码
+- 路由
+- axios
+- 环境配置
+
+
+输出：
+
+
+docs/current-analysis.md
+
+
+
+完成内容：
+
+1. 检查项目目录结构，确认 main-layout 和 app-demo 均不存在。
+2. 分析技术栈目标和约束。
+3. 识别当前问题（架构、依赖、构建、微前端）。
+4. 评估风险（技术、迁移、兼容）。
+5. 制定后续执行方案和核心依赖版本规划。
+
+
+修改文件：
+
+docs/current-analysis.md（新建）
+docs/phase-log.md（新建）
+docs/context-state.md（更新）
+
+
+测试结果：
+
+无需测试（分析阶段）
+
+
+遇到问题：
+
+项目处于空白状态，需从零构建。
+
+
+下一阶段：
+
+Phase 1
+
+
+---
+
+# Phase 1 主应用初始化
+
+
+状态：
+
+未开始
+
+
+目标：
+
+创建：
+
+main-layout
+
+
+完成：
+
+
+- Vue2工程初始化
+- Webpack4配置
+- Babel配置
+- qiankun基础接入
+- Router配置
+- Axios封装
+
+
+输出：
+
+
+docs/layout-init.md
+
+
+
+完成内容：
+
+待填写。
+
+
+修改文件：
+
+待填写。
+
+
+测试结果：
+
+待填写。
+
+
+遇到问题：
+
+待填写。
+
+
+下一阶段：
+
+Phase 2
+
+
+---
+
+# Phase 2 主应用能力建设
+
+
+状态：
+
+未开始
+
+
+目标：
+
+
+完善main-layout基座能力。
+
+
+完成：
+
+
+- qiankun注册
+- 子应用管理
+- 登录认证
+- token管理
+- session管理
+- 菜单管理
+- 权限控制
+- 路由控制
+- axios增强
+
+
+输出：
+
+
+docs/layout.md
+
+docs/phase2-summary.md
+
+
+
+完成内容：
+
+待填写。
+
+
+修改文件：
+
+待填写。
+
+
+测试结果：
+
+待填写。
+
+
+遇到问题：
+
+待填写。
+
+
+下一阶段：
+
+Phase 3
+
+
+---
+
+# Phase 3 子应用建设
+
+
+状态：
+
+未开始
+
+
+目标：
+
+创建：
+
+app-demo
+
+
+完成：
+
+
+- 独立运行
+- qiankun接入
+- 生命周期实现
+- request封装
+- 异常处理
+
+
+输出：
+
+docs/subapp.md
+
+
+
+完成内容：
+
+待填写。
+
+
+修改文件：
+
+待填写。
+
+
+测试结果：
+
+待填写。
+
+
+遇到问题：
+
+待填写。
+
+
+下一阶段：
+
+Phase 4
+
+
+---
+
+# Phase 4 主子应用通信
+
+
+状态：
+
+未开始
+
+
+目标：
+
+建立主子应用通信机制。
+
+
+完成：
+
+
+主应用发送：
+
+- token
+- userInfo
+- menu
+- permission
+
+
+子应用发送：
+
+- route
+- refresh
+- logout
+
+
+输出：
+
+docs/communication.md
+
+
+
+完成内容：
+
+待填写。
+
+
+修改文件：
+
+待填写。
+
+
+测试结果：
+
+待填写。
+
+
+遇到问题：
+
+待填写。
+
+
+下一阶段：
+
+Phase 5
+
+
+---
+
+# Phase 5 部署能力建设
+
+
+状态：
+
+未开始
+
+
+目标：
+
+实现独立部署。
+
+
+完成：
+
+
+- 环境配置
+- 构建流程
+- Nginx部署
+- 静态资源配置
+- 子应用注册
+
+
+输出：
+
+docs/deploy.md
+
+
+
+完成内容：
+
+待填写。
+
+
+修改文件：
+
+待填写。
+
+
+测试结果：
+
+待填写。
+
+
+遇到问题：
+
+待填写。
+
+
+下一阶段：
+
+Phase 6
+
+
+---
+
+# Phase 6 测试验收
+
+
+状态：
+
+未开始
+
+
+目标：
+
+完成整体验收。
+
+
+验证：
+
+
+## 主应用
+
+
+- 独立启动
+- 登录
+- 菜单
+- session
+- 子应用加载
+
+
+## 子应用
+
+
+- 独立启动
+- qiankun加载
+- 生命周期
+- 请求处理
+
+
+## 通信
+
+
+- 数据同步
+- 路由跳转
+- logout通知
+
+
+
+输出：
+
+docs/test-report.md
+
+
+
+完成内容：
+
+待填写。
+
+
+修改文件：
+
+待填写。
+
+
+测试结果：
+
+待填写。
+
+
+遇到问题：
+
+待填写。
+
+
+下一阶段：
+
+项目完成
+
+
+---
+
+# 七、当前问题列表
+
+
+暂无。
+
+
+---
+
+# 八、技术决策记录
+
+
+## 配置体系
+
+
+决定：
+
+所有Node配置使用CommonJS。
+
+
+原因：
+
+兼容Webpack4生态。
+
+
+
+---
+
+## 微前端模式
+
+
+决定：
+
+采用qiankun独立应用模式。
+
+
+原因：
+
+保证：
+
+- 应用隔离
+- 独立部署
+- 独立开发
+
+
+
+---
+
+## 应用关系
+
+
+决定：
+
+main-layout与app-demo完全隔离。
+
+
+禁止：
+
+业务源码共享。
+
+
+---
+
+# 九、最近一次执行记录
+
+
+执行时间：
+
+2026-07-24
+
+
+执行阶段：
+
+Phase 0 ~ Phase 6（全部完成）
+
+
+执行内容：
+
+从零构建企业级 qiankun 微前端脚手架。
+完成主应用（main-layout）、子应用（app-demo）、通信机制、部署配置、测试验收。
+
+
+修改文件：
+
+main-layout/（全部新建）
+app-demo/（全部新建）
+deploy/nginx/（新建）
+docs/（全部新建或更新）
+
+
+测试：
+
+主应用构建通过（Webpack 4.47.0）
+子应用构建通过（Webpack 4.47.0，零警告零错误）
+依赖安装通过
+
+
+问题：
+
+1. style-loader@3.x 和 css-loader@6.x 不兼容 Webpack4，降级为 2.x 和 5.x。
+2. globalState.js 导出名与 qiankun 的 initGlobalState 冲突，使用 import alias 解决。
+
+
+---
+
+# 十、下一步执行任务
+
+
+Claude Code 下一次执行时：
+
+首先读取本文件。
+
+
+根据当前阶段继续执行。
+
+
+执行顺序：
+
+
+读取状态
+
+↓
+
+分析当前阶段
+
+↓
+
+修改代码
+
+↓
+
+执行测试
+
+↓
+
+更新状态
+
+↓
+
+进入下一阶段

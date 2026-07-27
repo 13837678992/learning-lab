@@ -1,117 +1,155 @@
 <template>
-  <div class="login">
-    <div class="login-card">
-      <h2>FMAC 平台登录</h2>
-      <form @submit.prevent="onSubmit">
-        <label>
-          <span>用户名</span>
-          <input v-model.trim="form.username" type="text" autocomplete="username" />
-        </label>
-        <label>
-          <span>密码</span>
-          <input v-model.trim="form.password" type="password" autocomplete="current-password" />
-        </label>
-        <button type="submit" :disabled="loading">{{ loading ? '登录中…' : '登录' }}</button>
+  <div class="login-container">
+    <div class="login-box">
+      <h2>系统登录</h2>
+      <form @submit.prevent="handleLogin">
+        <div class="form-item">
+          <label>用户名</label>
+          <input v-model="username" type="text" placeholder="请输入用户名" />
+        </div>
+        <div class="form-item">
+          <label>密码</label>
+          <input v-model="password" type="password" placeholder="请输入密码" />
+        </div>
+        <button type="submit" class="login-btn" :disabled="loading">
+          {{ loading ? '登录中...' : '登 录' }}
+        </button>
+        <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
       </form>
-      <p class="tip">开发态默认账号：admin / 任意密码（由 dev-server mock 提供）。</p>
     </div>
   </div>
 </template>
 
 <script>
-import { login } from '@/api/user';
-import { afterLogin } from '@/platform/session';
-import message from '@/utils/message';
+import { login, getUserInfo } from '@/api/user';
+import { getMenu } from '@/api/menu';
+import { start as startSession } from '@/platform/session';
+import { syncUserState, syncMenuState } from '@/platform/bridge';
 
 export default {
   name: 'Login',
   data() {
     return {
-      form: { username: 'admin', password: '123456' },
+      username: '',
+      password: '',
       loading: false,
+      errorMsg: ''
     };
   },
   methods: {
-    async onSubmit() {
-      if (!this.form.username || !this.form.password) {
-        message.warning('请输入用户名和密码');
+    async handleLogin() {
+      this.errorMsg = '';
+      if (!this.username || !this.password) {
+        this.errorMsg = '请输入用户名和密码';
         return;
       }
       this.loading = true;
       try {
-        const resp = await login({ username: this.form.username, password: this.form.password });
-        await afterLogin(resp);
-        message.success('登录成功');
+        var res = await login({
+          username: this.username,
+          password: this.password
+        });
+        this.$store.commit('SET_TOKEN', res.data.token);
+        try {
+          var infoRes = await getUserInfo();
+          this.$store.commit('SET_USER_INFO', infoRes.data);
+        } catch (e) {
+          console.error('获取用户信息失败', e);
+        }
+        try {
+          var menuRes = await getMenu();
+          this.$store.commit('SET_MENU', menuRes.data);
+        } catch (e) {
+          console.error('获取菜单失败', e);
+        }
+        startSession();
+        syncUserState();
+        syncMenuState();
+        var redirect = this.$route.query.redirect || '/';
+        this.$router.push(redirect);
       } catch (e) {
-        // 错误提示已由 request 响应拦截器统一处理。
+        this.errorMsg = e.message || '登录失败';
       } finally {
         this.loading = false;
       }
-    },
-  },
+    }
+  }
 };
 </script>
 
 <style scoped>
-.login {
+.login-container {
   display: flex;
-  align-items: center;
   justify-content: center;
-  height: 100%;
+  align-items: center;
+  height: 100vh;
+  background: #f0f2f5;
 }
-.login-card {
+
+.login-box {
   width: 360px;
   padding: 32px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
-.login-card h2 {
-  margin: 0 0 20px;
+
+.login-box h2 {
   text-align: center;
+  margin-bottom: 24px;
+  color: #333;
 }
-label {
-  display: block;
+
+.form-item {
   margin-bottom: 16px;
 }
-label span {
+
+.form-item label {
   display: block;
   margin-bottom: 6px;
-  color: #4e5969;
-  font-size: 13px;
+  color: #666;
+  font-size: 14px;
 }
-input {
+
+.form-item input {
   width: 100%;
-  height: 38px;
-  padding: 0 12px;
+  padding: 10px 12px;
   border: 1px solid #dcdfe6;
-  border-radius: 8px;
+  border-radius: 4px;
+  font-size: 14px;
   outline: none;
+  box-sizing: border-box;
 }
-input:focus {
-  border-color: #2f6bff;
+
+.form-item input:focus {
+  border-color: #409eff;
 }
-button {
+
+.login-btn {
   width: 100%;
-  height: 40px;
-  border: 0;
-  border-radius: 8px;
-  background: #2f6bff;
+  padding: 10px;
+  background: #409eff;
   color: #fff;
-  font-size: 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
   cursor: pointer;
+  margin-top: 8px;
 }
-button:disabled {
+
+.login-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-button:hover:not(:disabled) {
-  background: #2559d6;
+
+.login-btn:hover:not(:disabled) {
+  background: #66b1ff;
 }
-.tip {
-  margin-top: 16px;
-  color: #86909c;
-  font-size: 12px;
+
+.error-msg {
+  color: #f56c6c;
+  font-size: 13px;
+  margin-top: 12px;
   text-align: center;
 }
 </style>

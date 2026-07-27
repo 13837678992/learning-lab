@@ -1,16 +1,16 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import routes from './routes';
-import { registerGuards } from './guards';
+import { routes } from './routes';
+import { beforeEach, afterEach } from './guards';
 
 Vue.use(VueRouter);
 
 const router = new VueRouter({
   mode: 'history',
-  base: process.env.PUBLIC_PATH || '/',
-  routes,
+  routes
 });
 
-registerGuards(router);
+beforeEach(router);
+afterEach(router);
 
 export default router;
