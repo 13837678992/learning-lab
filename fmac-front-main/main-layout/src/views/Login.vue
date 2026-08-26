@@ -65,8 +65,12 @@ export default {
         startSession();
         syncUserState();
         syncMenuState();
-        var redirect = this.$route.query.redirect || '/';
-        this.$router.push(redirect);
+
+        var redirect = this.$route.query.redirect
+          || this.$store.dispatch('getRedirect')
+          || '/';
+        this.$store.dispatch('clearRedirect');
+        this.$router.replace(redirect);
       } catch (e) {
         this.errorMsg = e.message || '登录失败';
       } finally {

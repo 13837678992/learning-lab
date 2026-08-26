@@ -26,6 +26,7 @@ if (!window.__POWERED_BY_QIANKUN__) {
   var token = getToken();
   if (token) {
     store.commit('SET_TOKEN', token);
+    store.dispatch('restoreTabs');
     startSession();
   }
   render();

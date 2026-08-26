@@ -8,7 +8,6 @@
     <div class="actions">
       <button @click="goDemo" class="action-btn">访问示例应用</button>
     </div>
-    <div id="subapp-container"></div>
   </div>
 </template>
 

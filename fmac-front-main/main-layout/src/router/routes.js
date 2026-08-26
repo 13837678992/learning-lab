@@ -29,7 +29,7 @@ export const routes = [
       {
         path: '',
         name: 'AppDemo',
-        meta: { requiresAuth: true, title: '示例应用' }
+        meta: { requiresAuth: true, title: '示例应用', isSubApp: true }
       }
     ]
   },

@@ -83,7 +83,7 @@ fmac-front-main
 Phase:
 
 
-已完成
+Layout 能力增强 V2（已完成）
 
 
 ---
@@ -683,39 +683,52 @@ main-layout与app-demo完全隔离。
 
 执行时间：
 
-2026-07-24
+2026-07-27
 
 
 执行阶段：
 
-Phase 0 ~ Phase 6（全部完成）
+Layout 能力增强 V2（Phase 1 ~ Phase 10 全部完成）
 
 
 执行内容：
 
-从零构建企业级 qiankun 微前端脚手架。
-完成主应用（main-layout）、子应用（app-demo）、通信机制、部署配置、测试验收。
+在 V1 基础上继续增强，完成：
+- Tab 持久化（localStorage 保存/恢复）
+- 登录恢复与深链接恢复
+- Tab 拖拽排序（HTML5 Drag & Drop）
+- Tab 双击关闭
+- 端到端测试文档
+- 高级能力设计文档
 
 
 修改文件：
 
-main-layout/（全部新建）
-app-demo/（全部新建）
-deploy/nginx/（新建）
-docs/（全部新建或更新）
+修改：
+- src/store/tabs.js（新增持久化、排序、redirect 存储）
+- src/layout/AppTabBar.vue（新增拖拽排序、双击关闭）
+- src/router/guards.js（新增 saveRedirect、persistTabs）
+- src/views/Login.vue（登录恢复 redirect）
+- src/main.js（启动时 restoreTabs）
+
+新增：
+- docs/layout-tab-test.md（测试报告）
+- docs/layout-tab-advanced.md（高级能力设计）
+
+更新：
+- docs/layout-tab.md（标签页设计文档 V2）
+- docs/context-state.md
+- docs/phase-log.md
 
 
 测试：
 
-主应用构建通过（Webpack 4.47.0）
-子应用构建通过（Webpack 4.47.0，零警告零错误）
-依赖安装通过
+主应用构建通过（Webpack 4.47.0，零错误零警告）
 
 
 问题：
 
-1. style-loader@3.x 和 css-loader@6.x 不兼容 Webpack4，降级为 2.x 和 5.x。
-2. globalState.js 导出名与 qiankun 的 initGlobalState 冲突，使用 import alias 解决。
+无。
 
 
 ---
@@ -723,35 +736,10 @@ docs/（全部新建或更新）
 # 十、下一步执行任务
 
 
-Claude Code 下一次执行时：
+Layout 能力增强 V2 任务已完成。
 
-首先读取本文件。
-
-
-根据当前阶段继续执行。
-
-
-执行顺序：
-
-
-读取状态
-
-↓
-
-分析当前阶段
-
-↓
-
-修改代码
-
-↓
-
-执行测试
-
-↓
-
-更新状态
-
-↓
-
-进入下一阶段
+后续可继续扩展：
+- 更多子应用接入
+- 标签分组
+- 标签图标（favicon）
+- 跨浏览器标签同步
