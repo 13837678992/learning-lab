@@ -1,0 +1,53 @@
+{
+  "name": "large-qrcode-transfer",
+  "version": "1.0.0",
+  "description": "Windows大容量二维码文本传输工具",
+  "main": "src/main/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "vite build && electron-builder",
+    "electron:build:win": "vite build && electron-builder --win portable",
+    "test": "node test/run-tests.mjs"
+  },
+  "build": {
+    "appId": "com.qrcode-transfer.app",
+    "productName": "LargeQRCodeTransfer",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "dist/**/*",
+      "src/main/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "large-qrcode-transfer.exe"
+    }
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "pako": "^2.1.0",
+    "qrcode": "^1.5.4",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "concurrently": "^9.1.2",
+    "electron": "^33.4.0",
+    "electron-builder": "^25.1.8",
+    "vite": "^6.3.5",
+    "vue": "^3.5.13",
+    "wait-on": "^8.0.3"
+  }
+}
