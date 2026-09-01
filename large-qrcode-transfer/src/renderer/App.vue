@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import TextInput from './components/TextInput.vue'
 import QrcodeViewer from './components/QrcodeViewer.vue'
 import ControlPanel from './components/ControlPanel.vue'
@@ -173,7 +173,18 @@ export default {
       }
     })
 
+    function handleKeydown(e) {
+      if (totalChunks.value <= 1) return
+      if (e.key === 'ArrowLeft') prevChunk()
+      else if (e.key === 'ArrowRight') nextChunk()
+    }
+
+    onMounted(() => {
+      window.addEventListener('keydown', handleKeydown)
+    })
+
     onUnmounted(() => {
+      window.removeEventListener('keydown', handleKeydown)
       stopPlay()
     })
 
