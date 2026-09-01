@@ -36,7 +36,6 @@
 |---|---|
 | `java` | Java 练习集合，包含 MinIO 对象存储、MyBatis-Plus、Knife4j 接口文档、Redis 缓存、租赁系统等多个子模块。 |
 | `mybatis-study` | MyBatis 框架学习。 |
-| `cloud2024` | Spring Cloud 微服务相关练习（Java 18 + Maven）。 |
 | `reactor-programming` | Java 响应式编程（Reactor）学习，含 Stream 与 Reactor 实践。 |
 | `nginxManagement` | Nginx 可视化管理系统。前端 Vue 3 + Element Plus，后端 Go + Gin，支持代理配置管理、配置在线编辑/测试/重载、命令执行等功能。 |
 
