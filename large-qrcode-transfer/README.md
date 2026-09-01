@@ -58,7 +58,7 @@ npm run electron:build:win
   "id": "<uuid>",
   "index": 1,
   "total": 6,
-  "checksum": "<sha256>",
+  "checksum": "<md5>",
   "data": "..."
 }
 ```
