@@ -27,6 +27,7 @@
 | `fmac-front-main` | fmac-front 微前端平台的主应用基座与演示子应用，提供主布局和集成示例。 |
 | `front-vue-study` | 基于 vue-pure-admin 精简版的 Vue 前端框架学习项目。 |
 | `vueandreactcomponent` | Vue 与 React 组件化开发对比研究。 |
+| `component-lab` | 跨框架组件实验项目，当前包含 Vue 2.7 + Vite 子项目，用于实践和对比不同框架的组件设计模式。 |
 | `react-admin-antd-node` | 基于 React + Ant Design + Node（Koa + MySQL）的前后端分离管理后台，使用 IPv6 作为个人服务器。 |
 | `router-title-jump` | VS Code 插件：通过中文标题、拼音、首字母、路径等多维度搜索，快速跳转到 Vue2/Vue3 路由对应的页面文件。基于 AST 解析，支持 3000+ 条路由 <2ms 搜索。 |
 
