@@ -15,16 +15,24 @@
         </div>
         <p class="counter">点击次数：{{ count }}</p>
       </section>
+      <section class="demo-section crud-section">
+        <CrudDemo />
+      </section>
+      <section class="demo-section crud-section">
+        <FormDemo />
+      </section>
     </main>
   </div>
 </template>
 
 <script>
 import BaseButton from './components/BaseButton.vue'
+import CrudDemo from './demo/CrudDemo.vue'
+import FormDemo from './demo/FormDemo.vue'
 
 export default {
   name: 'App',
-  components: { BaseButton },
+  components: { BaseButton, CrudDemo, FormDemo },
   data() {
     return { count: 0 }
   },
@@ -61,7 +69,7 @@ body {
 }
 
 .app-main {
-  max-width: 720px;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
@@ -83,6 +91,10 @@ body {
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+}
+
+.crud-section {
+  margin-top: 1.5rem;
 }
 
 .counter {
