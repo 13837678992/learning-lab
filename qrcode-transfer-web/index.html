@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>大容量二维码文本传输工具</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>大容量二维码文本传输工具</h1>
+      <span class="version">v1.0.0 · Web 单文件版</span>
+    </header>
+    <main class="app-main">
+      <div class="left-panel">
+        <div class="text-input-panel">
+          <div class="panel-header">
+            <h2>文本输入</h2>
+            <div class="stats">
+              <span class="stat">字符: <span id="char-count">0</span></span>
+              <span class="stat">字节: <span id="byte-size">0</span></span>
+            </div>
+          </div>
+          <textarea
+            id="text-input"
+            class="text-area"
+            placeholder="输入或粘贴文本内容（支持 Ctrl+V 粘贴）...&#10;&#10;支持中文、英文、特殊字符、emoji 等"
+          ></textarea>
+          <div id="status-line" class="status-line"></div>
+          <div class="actions">
+            <button id="btn-generate" class="btn btn-primary" disabled>生成二维码</button>
+            <button id="btn-clipboard" class="btn btn-secondary">读取剪贴板</button>
+            <button id="btn-clear" class="btn btn-ghost">清空</button>
+          </div>
+        </div>
+        <div id="control-panel" class="control-panel" hidden>
+          <div class="size-info">
+            <div class="size-item">
+              <span class="label">文本大小</span>
+              <span class="value" id="orig-size">0 B</span>
+            </div>
+            <div class="size-item">
+              <span class="label">二维码数量</span>
+              <span class="value" id="chunk-total">0</span>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button id="btn-prev" class="ctrl-btn">◀ 上一张</button>
+            <button id="btn-play" class="ctrl-btn play-btn">▶ 播放</button>
+            <button id="btn-next" class="ctrl-btn">下一张 ▶</button>
+          </div>
+
+          <div class="speed-controls">
+            <span class="speed-label">播放速度:</span>
+            <button class="speed-btn" data-speed="500">500ms</button>
+            <button class="speed-btn active" data-speed="1000">1s</button>
+            <button class="speed-btn" data-speed="2000">2s</button>
+          </div>
+
+          <div class="qr-size-controls">
+            <span class="speed-label">二维码尺寸:</span>
+            <button class="speed-btn active" data-size="500">500px</button>
+            <button class="speed-btn" data-size="1000">1000px</button>
+            <button class="speed-btn" data-size="1500">1500px</button>
+          </div>
+
+          <div class="chunk-counter">
+            当前: <span id="chunk-index">1</span> / <span id="chunk-total-2">1</span>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="qrcode-viewer">
+          <div id="placeholder" class="placeholder">
+            <div class="placeholder-icon">&#9635;</div>
+            <p>输入文本后点击"生成二维码"</p>
+            <p class="hint">大文本将自动分片为多个二维码，扫码直接显示原文</p>
+          </div>
+          <div id="qr-display" class="qr-display" hidden>
+            <div class="qr-frame">
+              <img id="qr-image" alt="QR Code" class="qr-image" />
+            </div>
+            <div class="chunk-info">
+              <div class="chunk-label">
+                第 <span id="qr-index" class="highlight">1</span> / <span id="qr-total">1</span> 张
+              </div>
+              <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+            <button id="btn-export" class="btn btn-secondary">导出当前二维码 PNG</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
