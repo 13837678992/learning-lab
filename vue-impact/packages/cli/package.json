@@ -1,0 +1,22 @@
+{
+  "name": "vue-impact-cli",
+  "version": "0.2.0",
+  "description": "Vue Impact 命令行工具：vue-impact <files...> [--json] [--verbose]",
+  "main": "dist/cli.cjs",
+  "bin": {
+    "vue-impact": "dist/cli.cjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js"
+  },
+  "dependencies": {
+    "@vue/compiler-sfc": "^3.4.38",
+    "vue-impact-core": "0.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

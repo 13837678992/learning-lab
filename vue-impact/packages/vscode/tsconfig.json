@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "vscode"],
+    "baseUrl": ".",
+    "paths": {
+      "vue-impact-core": ["../core/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

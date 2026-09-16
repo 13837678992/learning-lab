@@ -1,0 +1,171 @@
+{
+  "name": "vscode-vue-impact",
+  "displayName": "Vue Impact",
+  "description": "Vue 项目路由级代码影响分析工具：分析当前文件 / 符号 / 搜索结果影响了哪些路由页面",
+  "version": "0.2.0",
+  "publisher": "vue-impact",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vueImpact.analyzeFile",
+        "title": "Vue Impact: 分析当前文件影响范围",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.analyzeSymbol",
+        "title": "Vue Impact: 分析当前符号影响范围",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.analyzeWorkspaceSearch",
+        "title": "Vue Impact: 分析工作区搜索匹配",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.reanalyze",
+        "title": "Vue Impact: 重新分析",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.clearCache",
+        "title": "Vue Impact: 清除缓存",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.copyTestScope",
+        "title": "Vue Impact: 复制测试范围",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.copyMarkdown",
+        "title": "Vue Impact: 复制 Markdown",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.exportJson",
+        "title": "Vue Impact: 导出 JSON",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.exportMarkdown",
+        "title": "Vue Impact: 导出 Markdown",
+        "category": "Vue Impact"
+      },
+      {
+        "command": "vueImpact.openRoute",
+        "title": "Vue Impact: 打开路由文件",
+        "category": "Vue Impact"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "vueImpact.analyzeFile",
+          "group": "navigation@90",
+          "when": "editorIsOpen && resourceScheme == file"
+        },
+        {
+          "command": "vueImpact.analyzeSymbol",
+          "group": "navigation@91",
+          "when": "editorIsOpen && resourceScheme == file"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "vueImpact.analyzeWorkspaceSearch",
+          "group": "navigation@90"
+        },
+        {
+          "command": "vueImpact.reanalyze",
+          "group": "navigation@91"
+        },
+        {
+          "command": "vueImpact.clearCache",
+          "group": "navigation@92"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "vueImpact.reanalyze",
+          "when": "view == vueImpact.impactTree",
+          "group": "navigation@1"
+        },
+        {
+          "command": "vueImpact.clearCache",
+          "when": "view == vueImpact.impactTree",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "vueImpact.analyzeFile",
+        "key": "ctrl+alt+i",
+        "mac": "cmd+alt+i"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "vueImpact.impactTree",
+          "name": "Vue Impact"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Vue Impact",
+      "properties": {
+        "vueImpact.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            "dist",
+            "coverage",
+            ".git",
+            "build",
+            "out"
+          ],
+          "description": "分析时排除的目录（相对工作区）。"
+        },
+        "vueImpact.cacheDir": {
+          "type": "string",
+          "default": ".node-impact-cache",
+          "description": "缓存目录名（相对项目根目录）。仅写入该目录，不修改业务代码。"
+        },
+        "vueImpact.maxFiles": {
+          "type": "number",
+          "default": 20000,
+          "description": "最多扫描的源码文件数。"
+        },
+        "vueImpact.searchMaxFiles": {
+          "type": "number",
+          "default": 3000,
+          "description": "工作区搜索最多读取的文件数。"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "vscode:prepublish": "node esbuild.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "vue-impact-core": "0.2.0"
+  }
+}

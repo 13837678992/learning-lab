@@ -1,0 +1,28 @@
+{
+  "name": "vue-impact-monorepo",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Vue Impact Analyzer - Vue 项目路由级代码影响分析工具（Core + CLI + VS Code Extension）",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build:core && npm run build:cli && npm run build:vscode",
+    "build:core": "npm run build -w vue-impact-core",
+    "build:cli": "npm run build -w vue-impact-cli",
+    "build:vscode": "npm run build -w vscode-vue-impact",
+    "typecheck": "tsc -p packages/core --noEmit && tsc -p packages/cli --noEmit && tsc -p packages/vscode --noEmit",
+    "test": "node --test tests/",
+    "package": "npm run build:vscode && node scripts/package-vsix.js",
+    "cli": "node packages/cli/dist/cli.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.50",
+    "@vscode/vsce": "^2.32.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
