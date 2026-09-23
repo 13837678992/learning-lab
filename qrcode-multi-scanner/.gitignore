@@ -1,0 +1,13 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/app/build
+# 打包产物（体积大，不入库）
+/dist
+/captures
+.externalNativeBuild
+.cxx
+local.properties

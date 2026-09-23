@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      刻意不声明 android.permission.INTERNET：
+      本应用完全离线，没有网络能力，这样可以从权限层面保证二维码内容不会外传。
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!--
+      下面两条是「移除」而不是「声明」。
+
+      ML Kit 的传递依赖 com.google.android.datatransport:transport-backend-cct
+      是 Google 的 CCT 遥测上传后端，它会把 INTERNET 与 ACCESS_NETWORK_STATE
+      合并进最终清单——于是「没有联网能力」这个承诺会被依赖悄悄破坏。
+      （这一点是从构建产物的合并清单报告里查出来的，不是猜的。）
+
+      这里用 tools:node="remove" 显式剔除，让离线保证重新变成结构性事实：
+      即使库里有遥测代码，进程也没有权限建立任何网络连接。
+      如果哪天要排查问题想临时恢复，删掉这两行即可。
+    -->
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
+
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="true" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.QrScanner">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.QrScanner">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
