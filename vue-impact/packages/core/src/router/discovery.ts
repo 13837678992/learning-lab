@@ -71,6 +71,24 @@ export function discoverRouter(ctx: DiscoveryContext): RouterInfo {
   }
 
   info.routes.sort((a, b) => a.path.localeCompare(b.path));
+
+  // 诊断：未发现路由时给出可操作的线索，而不是静默返回空
+  if (info.routes.length === 0) {
+    if (info.routerFiles.length === 0) {
+      pushWarning(ctx.warnings, {
+        type: 'unresolved-import',
+        message:
+          '未发现任何 Router 创建点（new Router / new VueRouter / createRouter / addRoutes / addRoute）。请确认项目使用 vue-router，且 router 文件未被扫描排除（node_modules / dist / .gitignore）。',
+        file: ctx.root,
+      });
+    } else {
+      pushWarning(ctx.warnings, {
+        type: 'unresolved-import',
+        message: `发现 ${info.routerFiles.length} 个含 Router 用法的文件，但未能提取到任何路由。若 routes 来自 require.context / 全局变量 / 运行时数据，属于静态分析限制。`,
+        file: info.routerFiles[0],
+      });
+    }
+  }
   return info;
 }
 

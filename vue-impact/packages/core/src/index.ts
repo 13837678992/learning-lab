@@ -11,4 +11,4 @@ export { parseRouteObject } from './parser/script';
 export { formatText, formatTestScope, formatMarkdown, formatJSON } from './reporter';
 export * from './types';
 
-export const version = '0.2.0';
+export const version = '0.2.1';

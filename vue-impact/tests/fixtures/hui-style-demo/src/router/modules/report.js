@@ -22,4 +22,12 @@ const tabContainer = {
   }
 }
 
-export default [personalDetailReport, stockReport, tabContainer]
+const badTemplate = {
+  path: 'frontwms/bad-template',
+  meta: {
+    title: '模板异常页',
+    component: () => import('@/views/odd/BadTemplate.vue')
+  }
+}
+
+export default [personalDetailReport, stockReport, tabContainer, badTemplate]

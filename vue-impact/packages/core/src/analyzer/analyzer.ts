@@ -86,7 +86,13 @@ export function analyze(targetFiles: string[], options: AnalyzeOptions = {}): An
   const cacheDirName = options.cacheDir ?? DEFAULT_CACHE_DIR;
 
   const firstTarget = targetFiles[0] ? path.resolve(targetFiles[0]) : process.cwd();
-  const root = options.projectRoot ? path.resolve(options.projectRoot) : findProjectRoot(firstTarget);
+  let root = options.projectRoot ? path.resolve(options.projectRoot) : findProjectRoot(firstTarget);
+  // 显式 projectRoot 不是 Vue 项目时（多项目工作区：工作区根 vs 子项目），
+  // 从目标文件就近发现 Vue 项目根，避免扫描无关目录导致真实 router 文件被遗漏
+  if (!isVueProject(root)) {
+    const near = findProjectRoot(firstTarget);
+    if (near !== root && isVueProject(near)) root = near;
+  }
   const targets = targetFiles.map((f) => {
     const abs = path.resolve(f);
     return abs;
