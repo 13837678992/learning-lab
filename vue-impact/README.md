@@ -104,14 +104,14 @@ npm run package    # 打包 VSIX
 
 ### 方式一：Install from VSIX
 
-1. 生成 VSIX：`npm run package` → 根目录生成 `vue-impact-0.2.0.vsix`
+1. 生成 VSIX：`npm run package` → 根目录生成 `vue-impact-0.2.1.vsix`
 2. VS Code → 扩展面板 → `...` → **Install from VSIX** → 选择该文件
 3. 重启 / 重新加载窗口
 
 ### 方式二：命令行
 
 ```powershell
-code --install-extension vue-impact-0.2.0.vsix
+code --install-extension vue-impact-0.2.1.vsix
 ```
 
 ### 方式三：开发调试
@@ -353,9 +353,16 @@ import(`./views/${name}.vue`)           // ⚠️ 动态 import，无法静态�
 - 运行时动态路由（服务端下发）无法静态确定
 - 模板字符串动态 import（`import(\`./views/\${name}.vue\`)`）标记警告
 - `import * as R from './routes'` 命名空间导入的成员无法静态追踪
-- Monorepo 以当前 Workspace 单项目为第一优先级
+- Monorepo 以当前 Workspace 单项目为第一优先级（多项目工作区会自动收敛到目标文件所属的 Vue 子项目）
 - 全局注册组件（无 import 的 `Vue.component`）无法追踪
 - 不修改业务项目：插件只读取和分析，缓存只写入 `.node-impact-cache/`
+
+### SFC 解析策略（重要）
+
+依赖分析只关心 `<script>` 块，模板完全不参与分析：
+
+- 模板语法错误（如 "Invalid end tag"）、`<template lang="pug">`、仅含 `<style>` 的 .vue 文件**不会**产生解析警告，脚本块照常提取
+- 未发现任何路由时，结果中会给出诊断警告（未发现 Router 创建点 / 发现 Router 用法但未能提取路由），便于定位问题
 
 # 18. 测试
 

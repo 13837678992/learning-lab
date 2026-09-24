@@ -19,6 +19,7 @@ test('hui: 共享组件被多个二级标签页 + 入口文件使用 → 全部�
   clearProjectCache(FIXTURE);
   const result = analyze([sharedTable]);
   assert.deepStrictEqual(routePaths(result), [
+    '/frontwms/bad-template',
     '/frontwms/report-manager',
     '/frontwms/stock-report',
     '/frontwms/tab-container',
@@ -57,4 +58,17 @@ test('hui: meta.component 动态 import 解析为目录 index.vue', () => {
   const route = result.routes.find((r) => r.path === '/frontwms/report-manager');
   assert.ok(route);
   assert.ok(route.component.endsWith(path.join('reportmanager', 'PersonalDetailReport', 'index.vue')));
+});
+
+test('hui: 模板 Invalid end tag / pug / 纯 style 文件不产生解析警告，脚本照常提取', () => {
+  clearProjectCache(FIXTURE);
+  const result = analyze([sharedTable]);
+  // BadTemplate.vue 模板未闭合 div（Invalid end tag），但其脚本仍被提取并参与依赖分析
+  const paths = routePaths(result);
+  assert.ok(paths.includes('/frontwms/bad-template'), '坏模板文件的脚本依赖仍被分析');
+  // 三个 odd 文件都不应产生 parse-error 警告
+  const parseWarnings = result.warnings.filter(
+    (w) => w.type === 'parse-error' && (w.file.includes('odd') || w.file.includes('PugOnly') || w.file.includes('StyleOnly')),
+  );
+  assert.deepStrictEqual(parseWarnings, [], '模板问题不应被报告为解析失败');
 });

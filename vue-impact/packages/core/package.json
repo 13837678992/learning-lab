@@ -1,6 +1,6 @@
 {
   "name": "vue-impact-core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Vue Impact 核心分析引擎：AST 解析、Router 自动发现、依赖图、影响分析",
   "main": "dist/index.cjs",
   "types": "src/index.ts",

@@ -24,3 +24,10 @@ test('circular: 非 Vue 项目给出 warning 但不报错', () => {
   const result = analyze([path.join(FIXTURE, 'b.js')]);
   assert.ok(result.warnings.some((w) => w.type === 'no-vue-project'));
 });
+
+test('circular: 0 路由时输出诊断警告（未发现 Router 创建点）', () => {
+  clearProjectCache(FIXTURE);
+  const result = analyze([path.join(FIXTURE, 'a.js')]);
+  const diagnostic = result.warnings.find((w) => w.message.includes('未发现任何 Router 创建点'));
+  assert.ok(diagnostic, '应有 0 路由诊断警告');
+});

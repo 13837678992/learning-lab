@@ -1,6 +1,6 @@
 {
   "name": "vue-impact-monorepo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Vue Impact Analyzer - Vue 项目路由级代码影响分析工具（Core + CLI + VS Code Extension）",
   "workspaces": [

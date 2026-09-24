@@ -2,7 +2,7 @@
   "name": "vscode-vue-impact",
   "displayName": "Vue Impact",
   "description": "Vue 项目路由级代码影响分析工具：分析当前文件 / 符号 / 搜索结果影响了哪些路由页面",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "vue-impact",
   "license": "MIT",
   "private": true,
@@ -166,6 +166,6 @@
   },
   "devDependencies": {
     "@types/vscode": "^1.85.0",
-    "vue-impact-core": "0.2.0"
+    "vue-impact-core": "0.2.1"
   }
 }

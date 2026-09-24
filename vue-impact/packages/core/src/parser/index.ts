@@ -34,12 +34,10 @@ export function parseFileContent(absPath: string, content: string, mtimeMs: numb
   }
 
   if (ext === '.vue') {
-    const { scripts, errors } = parseVueScripts(content, absPath);
-    if (scripts.length === 0) {
-      return { parsed: empty, error: errors.length > 0 ? errors[0] : undefined };
-    }
+    const { scripts } = parseVueScripts(content, absPath);
+    if (scripts.length === 0) return { parsed: empty };
     const results: ScriptParseResult[] = [];
-    let firstError: string | undefined = errors.length > 0 ? errors[0] : undefined;
+    let firstError: string | undefined;
     for (const script of scripts) {
       try {
         results.push(parseScript(script.content, absPath));
