@@ -31,3 +31,4 @@ pnpm-debug.log*
 .cache/
 .vite/
 coverage/
+.node-impact-cache/
