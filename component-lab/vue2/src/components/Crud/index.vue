@@ -50,7 +50,7 @@
           v-if="tableData.length > 0"
         ></el-table-column>
         <el-table-column
-          v-for="(item) in tableConfig.tableColumns"
+          v-for="item in tableConfig.tableColumns"
           :key="item.prop"
           :prop="item.prop"
           :label="item.label"
@@ -59,18 +59,28 @@
           :min-width="
             item.minWidth
               ? item.minWidth
-              : flexColumnWidth(item.prop, tableData, item.label, item.needGetVal, item.tcKey || item.selectList)
+              : flexColumnWidth(
+                  item.prop,
+                  tableData,
+                  item.label,
+                  item.needGetVal,
+                  item.tcKey || item.selectList,
+                )
           "
           :fixed="item.fixed ? item.fixed : false"
         >
           <template slot-scope="scope">
             <table-render v-if="item.render" :render="item.render" :scope="scope"></table-render>
-            <div v-else-if="item.expand" class="expandable-content" :style="{ '-webkit-box-orient': 'vertical' }">
+            <div
+              v-else-if="item.expand"
+              class="expandable-content"
+              :style="{ '-webkit-box-orient': 'vertical' }"
+            >
               <div
                 :ref="item.prop + '_' + scope.row.id"
                 :class="{
                   'content-collapse': !scope.row[`expand${item.prop}`],
-                  'content-expanded': scope.row[`expand${item.prop}`]
+                  'content-expanded': scope.row[`expand${item.prop}`],
                 }"
               >
                 {{ scope.row[item.prop] }}
@@ -81,11 +91,13 @@
                 size="mini"
                 @click="toggleExpand(scope.row, item.prop)"
               >
-                {{ scope.row[`expand${item.prop}`] ? "收起" : "展开" }}
+                {{ scope.row[`expand${item.prop}`] ? '收起' : '展开' }}
               </el-button>
             </div>
             <span v-else :class="item.className ? item.className : ''">
-              <span v-if="!!scope.row[`${item.prop}`] && scope.row[`${item.prop}`].toString().trim()">
+              <span
+                v-if="!!scope.row[`${item.prop}`] && scope.row[`${item.prop}`].toString().trim()"
+              >
                 <span v-if="item.needGetVal">
                   {{ getVal(item.tcKey || item.selectList, scope.row[`${item.prop}`]) }}
                 </span>
@@ -119,7 +131,7 @@
               <el-button
                 size="mini"
                 type="text"
-                style="margin-right:5px"
+                style="margin-right: 5px"
                 :disabled="item.disabled"
                 v-if="!!item.showMethod ? item.showMethod(scope.row) : true"
                 @click="handleTableButtonClick(item, scope.row, scope.$index)"
@@ -159,7 +171,13 @@
       top="2vh"
     >
       <div style="text-align: center">
-        <el-upload class="upload-demo" action :show-file-list="false" accept=".xlsx, .xls" :http-request="uploadFile">
+        <el-upload
+          class="upload-demo"
+          action
+          :show-file-list="false"
+          accept=".xlsx, .xls"
+          :http-request="uploadFile"
+        >
           <el-button size="small" type="primary">点击上传</el-button>
           <div slot="tip" class="el-upload__tip">只能上传xlsx/xls文件</div>
         </el-upload>
@@ -211,14 +229,19 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="commonFormDialog = false">取消</el-button>
         <el-button @click="reset" v-if="commonFormConfig.needReset == false">重置</el-button>
-        <el-button type="primary" @click="commonFormSumbit" v-if="commonFormConfig.needSubmit != false">确定</el-button>
+        <el-button
+          type="primary"
+          @click="commonFormSumbit"
+          v-if="commonFormConfig.needSubmit != false"
+          >确定</el-button
+        >
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import ConfigForm from "../Form/index.vue"
+import ConfigForm from '../Form/index.vue'
 
 // 默认请求超时时间(ms),可通过每个 urlConfig 的 timeout 覆盖
 const REQUEST_TIMEOUT = 60000
@@ -226,7 +249,7 @@ const REQUEST_TIMEOUT = 60000
 // ---------- 内部工具函数 ----------
 // 深拷贝:保留函数引用,处理 Date/RegExp 与循环引用
 function cloneDeep(obj, seen) {
-  if (obj === null || typeof obj !== "object") {
+  if (obj === null || typeof obj !== 'object') {
     return obj
   }
   if (obj instanceof Date) {
@@ -250,9 +273,9 @@ function cloneDeep(obj, seen) {
 // 对象/数组/FormData 转查询字符串
 function buildQueryString(params) {
   if (!params) {
-    return ""
+    return ''
   }
-  if (typeof params === "string") {
+  if (typeof params === 'string') {
     return params
   }
   const parts = []
@@ -260,7 +283,7 @@ function buildQueryString(params) {
     if (value === undefined || value === null) {
       return
     }
-    parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(value))
+    parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value))
   }
   if (params instanceof FormData) {
     for (const pair of params.entries()) {
@@ -268,7 +291,7 @@ function buildQueryString(params) {
     }
   } else if (Array.isArray(params)) {
     params.forEach((value, index) => append(index, value))
-  } else if (typeof params === "object") {
+  } else if (typeof params === 'object') {
     Object.keys(params).forEach(key => {
       const value = params[key]
       if (Array.isArray(value)) {
@@ -278,37 +301,50 @@ function buildQueryString(params) {
       }
     })
   }
-  return parts.join("&")
+  return parts.join('&')
 }
 
 // 内置 fetch 请求实现:axios 风格配置,返回 { data, status, headers }
 async function defaultRequest(config) {
-  const { url, method = "get", params, data, headers: reqHeaders = {}, responseType, timeout } = config
+  const {
+    url,
+    method = 'get',
+    params,
+    data,
+    headers: reqHeaders = {},
+    responseType,
+    timeout,
+  } = config
   const m = String(method).toLowerCase()
-  let fullUrl = url || ""
+  let fullUrl = url || ''
   let queryParams = params
   // fetch 不支持 GET/HEAD 携带请求体,将 data 并入 query
-  if ((m === "get" || m === "head") && data !== undefined && data !== null && !(data instanceof FormData)) {
+  if (
+    (m === 'get' || m === 'head') &&
+    data !== undefined &&
+    data !== null &&
+    !(data instanceof FormData)
+  ) {
     queryParams = { ...(params || {}), ...data }
   }
   const queryString = buildQueryString(queryParams)
   if (queryString) {
-    fullUrl += (fullUrl.includes("?") ? "&" : "?") + queryString
+    fullUrl += (fullUrl.includes('?') ? '&' : '?') + queryString
   }
   const options = { method: m, headers: { ...reqHeaders } }
-  if (!(m === "get" || m === "head") && data !== undefined && data !== null) {
+  if (!(m === 'get' || m === 'head') && data !== undefined && data !== null) {
     if (data instanceof FormData) {
       // 浏览器自动设置 multipart/form-data 边界
       options.body = data
-      delete options.headers["Content-Type"]
+      delete options.headers['Content-Type']
     } else {
       options.body = JSON.stringify(data)
-      if (!options.headers["Content-Type"]) {
-        options.headers["Content-Type"] = "application/json"
+      if (!options.headers['Content-Type']) {
+        options.headers['Content-Type'] = 'application/json'
       }
     }
   }
-  const controller = typeof AbortController !== "undefined" ? new AbortController() : null
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
   let timer = null
   if (controller && timeout) {
     options.signal = controller.signal
@@ -323,7 +359,7 @@ async function defaultRequest(config) {
     }
   }
   let payload = null
-  if (responseType === "blob") {
+  if (responseType === 'blob') {
     payload = await res.blob()
   } else {
     const text = await res.text()
@@ -344,7 +380,7 @@ async function defaultRequest(config) {
 
 // 兼容 Vite(浏览器端无 process)与 Vue CLI(提供 process.env)两种宿主
 function getEnv() {
-  return typeof process !== "undefined" && process.env ? process.env : {}
+  return typeof process !== 'undefined' && process.env ? process.env : {}
 }
 
 // ---------- 表格自定义渲染列(原 render.vue) ----------
@@ -353,17 +389,17 @@ const TableRender = {
   render: (h, data) => {
     const params = {
       row: data.props.scope.row,
-      index: data.props.scope.$index
+      index: data.props.scope.$index,
     }
-    return h("span", [data.props.render(h, params)])
-  }
+    return h('span', [data.props.render(h, params)])
+  },
 }
 
 export default {
-  name: "Crud",
+  name: 'Crud',
   components: {
     TableRender,
-    ConfigForm
+    ConfigForm,
   },
   props: {
     crudConfig: {
@@ -371,24 +407,24 @@ export default {
       required: true,
       default: () => {
         return {}
-      }
+      },
     },
     //可选:自定义请求函数,签名 (config) => Promise<{data}>,config 为 axios 风格配置对象。
     //未传时使用内置 fetch 实现。
     request: {
       type: Function,
-      default: null
-    }
+      default: null,
+    },
   },
   watch: {
     crudConfig: {
       handler() {
         this.formConfig = cloneDeep(this.crudConfig.formConfig)
-        this.tableConfig = cloneDeep(this.crudConfig.tableConfig)
+        this.tableConfig = cloneDeep(this.crudConfig.tableConfig) // TODO 你好
         this.urlConfig = cloneDeep(this.crudConfig.urlConfig)
       },
       immediate: true,
-      deep: true
+      deep: true,
     },
     commonFormDialog: {
       handler(val) {
@@ -397,8 +433,8 @@ export default {
         }
       },
       immediate: true,
-      deep: true
-    }
+      deep: true,
+    },
   },
   data() {
     return {
@@ -409,7 +445,7 @@ export default {
       detailFormConfig: {}, //保存详情表单设置
       buttonList: {
         del: {
-          name: "删除",
+          name: '删除',
           method: (data, row, index) => {
             if (data.method) {
               data.method(row)
@@ -418,55 +454,55 @@ export default {
               this.currentTableIndex = index
               this.del(row)
             }
-          }
+          },
         },
         mod: {
-          name: "修改",
+          name: '修改',
           method: (data, row, index) => {
             if (data.method) {
               data.method(row)
             } else {
               this.isMod = true
               this.currentTableIndex = index
-              this.showCommonFormDialog("mod", data.buttonName || "修改", row)
+              this.showCommonFormDialog('mod', data.buttonName || '修改', row)
             }
-          }
+          },
         },
         detail: {
-          name: "详情",
+          name: '详情',
           method: (data, row, index) => {
             if (data.method) {
               data.method(row)
             } else {
               this.isMod = false
               this.currentTableIndex = index
-              this.showCommonFormDialog("detail", data.buttonName || "详情", row)
+              this.showCommonFormDialog('detail', data.buttonName || '详情', row)
             }
-          }
+          },
         },
         common: {
-          name: "默认",
+          name: '默认',
           method: (data, row, index) => {
             if (data.method) {
               data.method(row)
             } else {
               this.isMod = false
               this.currentTableIndex = index
-              this.$message.warning("默认按钮必须自定义方法")
+              this.$message.warning('默认按钮必须自定义方法')
             }
-          }
-        }
+          },
+        },
       },
 
-      allModData: "", //保存修改所有参数
-      detailData: "", //保存详情所有参数
+      allModData: '', //保存修改所有参数
+      detailData: '', //保存详情所有参数
       detailDialog: false, //新增弹窗显示
       commonFormDialog: false, //公共表单是否显示
       commonFormConfig: {}, //公共表单配置
-      commonFormTitle: "", //公共表单标题
-      currentCommonFormName: "", //公共表单配置名字
-      currentTableIndex: "",
-      currentCommonFormUrlName: "", //公共表单对应地址名字
+      commonFormTitle: '', //公共表单标题
+      currentCommonFormName: '', //公共表单配置名字
+      currentTableIndex: '',
+      currentCommonFormUrlName: '', //公共表单对应地址名字
       currentCommonFormDefaultForm: {}, //当前操作公共表单默认数据
       isMod: false, //当前公共表单操作是否是修改
       uploadDialogVisible: false, //上传弹窗配置
@@ -475,7 +511,7 @@ export default {
       tableLoading: false, //表格加载状态
       currentPage: 1, // 当前页
       total: 0, // 总数
-      pageSize: 10 //每页数量
+      pageSize: 10, //每页数量
     }
   },
   computed: {
@@ -483,8 +519,8 @@ export default {
     crudFormButtons() {
       return {
         query: {
-          name: "查询",
-          type: "primary",
+          name: '查询',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
@@ -498,11 +534,11 @@ export default {
                 }
               })
             }
-          }
+          },
         },
         reset: {
-          name: "重置",
-          type: "primary",
+          name: '重置',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
@@ -511,23 +547,23 @@ export default {
               this.$refs.form.resetFields()
               this.getForm()
             }
-          }
+          },
         },
         add: {
-          name: "新增",
-          type: "primary",
+          name: '新增',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
               data.method(form, formList)
             } else {
-              this.$parent.showCommonFormDialog("add", data.buttonName || "新增")
+              this.$parent.showCommonFormDialog('add', data.buttonName || '新增')
             }
-          }
+          },
         },
         download: {
-          name: "下载excel",
-          type: "primary",
+          name: '下载excel',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
@@ -535,11 +571,11 @@ export default {
             } else {
               this.$parent.download()
             }
-          }
+          },
         },
         download1: {
-          name: "下载模板",
-          type: "primary",
+          name: '下载模板',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
@@ -547,21 +583,21 @@ export default {
             } else {
               if (data.mouldName) {
                 const env = getEnv()
-                window.location.href = ["local"].includes(env.ENV_CONFIG)
+                window.location.href = ['local'].includes(env.ENV_CONFIG)
                   ? `/static/${data.mouldName}`
                   : `../${env.ASSETS_PUBLIC_PATH}/static/${data.mouldName}`
               } else {
                 this.$message({
-                  message: "请配置该模板名称！",
-                  type: "error"
+                  message: '请配置该模板名称！',
+                  type: 'error',
                 })
               }
             }
-          }
+          },
         },
         upload: {
-          name: "上传",
-          type: "primary",
+          name: '上传',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
@@ -569,11 +605,11 @@ export default {
             } else {
               this.$parent.showUploadDialog()
             }
-          }
+          },
         },
         mulDelete: {
-          name: "批量删除",
-          type: "primary",
+          name: '批量删除',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
@@ -581,11 +617,11 @@ export default {
             } else {
               this.$parent.mulDelete()
             }
-          }
+          },
         },
         commonForm: {
-          name: "表单",
-          type: "primary",
+          name: '表单',
+          type: 'primary',
           plain: true,
           method: function (data, form, formList) {
             if (data.method) {
@@ -593,10 +629,10 @@ export default {
             } else {
               this.$parent.showCommonFormDialog(data)
             }
-          }
-        }
+          },
+        },
       }
-    }
+    },
   },
   methods: {
     toggleExpand(row, field) {
@@ -606,7 +642,7 @@ export default {
     //计算表格操作按钮宽度
     getTableButtonWidth() {
       let num = 0
-      let sumStr = ""
+      let sumStr = ''
       const buttonList = this.tableConfig.tableButtonList || []
       if (buttonList.length > 0) {
         buttonList.forEach(item => {
@@ -618,7 +654,7 @@ export default {
     },
     //获取表格操作按钮显示文字
     getButtonText(item) {
-      if (item && typeof item === "object") {
+      if (item && typeof item === 'object') {
         if (item.buttonName) {
           return item.buttonName
         }
@@ -628,59 +664,59 @@ export default {
         }
       }
       const handler = this.buttonList[item]
-      return handler ? handler.name : ""
+      return handler ? handler.name : ''
     },
     //表格操作按钮点击
     handleTableButtonClick(item, row, index) {
       const handler = this.buttonList[item.name || item]
-      if (handler && typeof handler.method === "function") {
+      if (handler && typeof handler.method === 'function') {
         handler.method(item, row, index)
-      } else if (item && typeof item.method === "function") {
+      } else if (item && typeof item.method === 'function') {
         item.method(row, index)
       } else {
-        this.$message.warning("该按钮未配置处理方法")
+        this.$message.warning('该按钮未配置处理方法')
       }
     },
 
     //上传文件
     uploadFile(data) {
-      let fileType = ["xls", "xlsx"]
-      if (!fileType.includes(data.file.name.split(".").reverse()[0])) {
+      let fileType = ['xls', 'xlsx']
+      if (!fileType.includes(data.file.name.split('.').reverse()[0])) {
         return this.$message({
-          message: "文件格式不正确,请重新上传",
-          type: "error"
+          message: '文件格式不正确,请重新上传',
+          type: 'error',
         })
       }
       //获取地址和请求方式以及是否放在请求头
-      if (!this.urlConfig.hasOwnProperty("uploadUrlConfig")) {
-        return this.$message.warning("请求配置不全,请核对")
+      if (!this.urlConfig.hasOwnProperty('uploadUrlConfig')) {
+        return this.$message.warning('请求配置不全,请核对')
       }
       let query = this.getQueryFormData()
       let requestData = this.resolveRequestConfig(this.urlConfig.uploadUrlConfig, query)
       if (!(requestData.url && requestData.type)) {
-        return this.$message.warning("请求配置不全,请核对")
+        return this.$message.warning('请求配置不全,请核对')
       }
       let params = new FormData()
-      params.append(this.urlConfig.uploadUrlConfig.prop || "file", data.file)
+      params.append(this.urlConfig.uploadUrlConfig.prop || 'file', data.file)
       this.commonRequest(
         requestData.url,
         requestData.type,
         params,
         requestData.needRequestHeader == true,
-        requestData.timeout
+        requestData.timeout,
       )
         .then(res => {
-          if (res.data.errorCode == "000000") {
-            this.$message.success(res.data.errorMsg || "导入数据成功!")
+          if (res.data.errorCode == '000000') {
+            this.$message.success(res.data.errorMsg || '导入数据成功!')
             this.uploadDialogVisible = false
             this.queryTableData() //获取表格数据
           } else {
-            this.$message.warning(res.data.errorMsg || "导入失败")
+            this.$message.warning(res.data.errorMsg || '导入失败')
           }
         })
         .catch(error => {
           console.error(error)
-          this.$message.warning("导入失败,请稍后重试")
+          this.$message.warning('导入失败,请稍后重试')
         })
     },
     //计算表单宽度
@@ -689,7 +725,7 @@ export default {
         return data.width
       } else {
         let row = ((data.row && data.row > 3 ? 3 : data.row) || 2).toString()
-        let newWidth = row * (Number(data.labelWidth) + 230 + 12) + 50 + 50 + "px" //弹窗两个padding+表单一个padding
+        let newWidth = row * (Number(data.labelWidth) + 230 + 12) + 50 + 50 + 'px' //弹窗两个padding+表单一个padding
         return newWidth
       }
     },
@@ -706,7 +742,7 @@ export default {
           return
         }
         let index = expandedRows.findIndex(x => x[key] == row[key])
-        if (index >= 0) this.$emit("expandChange", row)
+        if (index >= 0) this.$emit('expandChange', row)
       }
     },
     //码值转码
@@ -718,10 +754,10 @@ export default {
           ? tckey
           : dictList && Array.isArray(dictList[tckey]) && dictList[tckey]
 
-      let str = ""
+      let str = ''
       if (Array.isArray(list) && list.length > 0) {
-        if (typeof data == "string" && (data.includes(",") || data.includes("."))) {
-          let list1 = data.includes(",") ? data.split(",") : data.split(".")
+        if (typeof data == 'string' && (data.includes(',') || data.includes('.'))) {
+          let list1 = data.includes(',') ? data.split(',') : data.split('.')
           let list2 = []
           list1.forEach(y => {
             list.forEach(x => {
@@ -730,7 +766,7 @@ export default {
               }
             })
           })
-          str = list2.join(" | ")
+          str = list2.join(' | ')
         } else {
           list.forEach(x => {
             if (x.key == data) {
@@ -745,7 +781,7 @@ export default {
     getCode(params, code) {
       const store = this.$store
       const dictList = store && store.state && store.state.common && store.state.common.dictList
-      let str = ""
+      let str = ''
       if (dictList && Array.isArray(dictList[params]) && dictList[params].length > 0) {
         dictList[params].forEach(x => {
           if (x.val == code) {
@@ -757,7 +793,7 @@ export default {
     },
     //处理日期
     addDate(params) {
-      if (params == null || params == " ") {
+      if (params == null || params == ' ') {
         return
       }
       let date = params.toString().trim()
@@ -765,14 +801,14 @@ export default {
         let year = date.slice(0, 4)
         let month = date.slice(4, 6)
         let day = date.slice(6, 8)
-        return year + "-" + month + "-" + day
+        return year + '-' + month + '-' + day
       } else {
         return params
       }
     },
     //处理时间
     addTime(params) {
-      if (params == null || [" ", ""].includes(params)) {
+      if (params == null || [' ', ''].includes(params)) {
         return
       }
       //存在需要补0情况
@@ -780,51 +816,59 @@ export default {
       let time = params.toString()
       if (len > 0) {
         for (let i = 1; i <= len; i++) {
-          time = "0" + time
+          time = '0' + time
         }
       }
       let time1 = time.slice(0, 2)
       let time2 = time.slice(2, 4)
       let time3 = time.slice(4, 6)
-      return time1 + ":" + time2 + ":" + time3
+      return time1 + ':' + time2 + ':' + time3
     },
     //删除日期中的横线
     delDate(params) {
       if (params == null) {
-        return ""
+        return ''
       }
-      return params.toString().replace(/-/g, "")
+      return params.toString().replace(/-/g, '')
     },
     //补0
     addZero(params, length) {
       if (params == null) {
-        return ""
+        return ''
       }
       //存在需要补0情况
       let len = length - params.toString().length
       let time = params.toString()
       if (len > 0) {
         for (let i = 1; i <= len; i++) {
-          time = "0" + time
+          time = '0' + time
         }
       }
       return time
     },
     //获取日期
     getDate(params, isOnlyDate) {
-      if (params == null || params === "") {
-        return ""
+      if (params == null || params === '') {
+        return ''
       }
       let date = new Date(params)
       if (isNaN(date.getTime())) {
-        return ""
+        return ''
       }
-      const pad = n => (n > 9 ? n : "0" + n)
-      const ymd = date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate())
+      const pad = n => (n > 9 ? n : '0' + n)
+      const ymd = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
       if (isOnlyDate) {
         return ymd
       }
-      return ymd + " " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds())
+      return (
+        ymd +
+        ' ' +
+        pad(date.getHours()) +
+        ':' +
+        pad(date.getMinutes()) +
+        ':' +
+        pad(date.getSeconds())
+      )
     },
     //获取日期时间
     getDateTime(params) {
@@ -837,50 +881,52 @@ export default {
      * @returns {string} 脱敏后的字符串
      */
     desMethods(data, type) {
-      const str = String(data || "").trim()
-      if (!str) return ""
+      const str = String(data || '').trim()
+      if (!str) return ''
       if (!type) {
-        return "*".repeat(str.length) || "*"
+        return '*'.repeat(str.length) || '*'
       }
       switch (type) {
         // 姓名脱敏
-        case "name": {
+        case 'name': {
           const len = str.length
-          if (len === 1) return "*"
-          if (len === 2) return str[0] + "*"
-          return str[0] + "*" + str[len - 1]
+          if (len === 1) return '*'
+          if (len === 2) return str[0] + '*'
+          return str[0] + '*' + str[len - 1]
         }
         // 手机号脱敏
-        case "tel": {
+        case 'tel': {
           if (str.length === 11) {
-            return str.slice(0, 3) + "****" + str.slice(7)
+            return str.slice(0, 3) + '****' + str.slice(7)
           }
           // 非11位：保留首尾，中间打码
           const len = str.length
-          return str.length <= 1 ? "*" : str[0] + "*".repeat(len - 2 > 4 ? 4 : len - 2) + str[str.length - 1]
+          return str.length <= 1
+            ? '*'
+            : str[0] + '*'.repeat(len - 2 > 4 ? 4 : len - 2) + str[str.length - 1]
         }
         // 其他类型，按默认处理
         default:
-          return "*".repeat(str.length)
+          return '*'.repeat(str.length)
       }
     },
 
     // 自适应表格列宽
     flexColumnWidth(prop, tableData, label, needGetVal, data) {
       // prop为该列的字段名(传字符串);tableData为该表格的数据源
-      prop = prop + ""
+      prop = prop + ''
       if (!tableData || tableData.length === 0) {
         return
       }
-      if (!prop || prop === "undefined") {
+      if (!prop || prop === 'undefined') {
         return
       }
       // 获取该列中最长的数据(内容)
-      let columnContent = (tableData[0][prop] != null && tableData[0][prop].toString()) || ""
+      let columnContent = (tableData[0][prop] != null && tableData[0][prop].toString()) || ''
       tableData.forEach(x => {
-        let nowStr = x[prop] == null ? "" : x[prop] + ""
+        let nowStr = x[prop] == null ? '' : x[prop] + ''
         if (x[prop] != null && !!needGetVal) {
-          nowStr = (this.getVal(data, x[prop]) || "") + ""
+          nowStr = (this.getVal(data, x[prop]) || '') + ''
         }
         if (nowStr.length > columnContent.length) {
           columnContent = nowStr
@@ -888,7 +934,7 @@ export default {
       })
       let flexWidth = this.getContentWidth(columnContent)
       //判断表头大小
-      flexWidth = (label || "").length * 25 > flexWidth ? (label || "").length * 25 : flexWidth
+      flexWidth = (label || '').length * 25 > flexWidth ? (label || '').length * 25 : flexWidth
       if (flexWidth > 260) {
         // 设置最大宽度
         flexWidth = 260
@@ -897,7 +943,7 @@ export default {
         // 设置最小宽度
         flexWidth = 90
       }
-      return flexWidth + "px"
+      return flexWidth + 'px'
     },
     //表格多选触发
     handleSelectionChange(val) {
@@ -929,15 +975,15 @@ export default {
     },
     //下载excel(下载期间"下载excel"按钮置灰)
     download() {
-      if (!this.urlConfig.hasOwnProperty("downloadUrlConfig")) {
-        return this.$message.warning("请求配置不全,请核对")
+      if (!this.urlConfig.hasOwnProperty('downloadUrlConfig')) {
+        return this.$message.warning('请求配置不全,请核对')
       }
       let downloadUrlConfig = this.urlConfig.downloadUrlConfig
       let queryFormConfig = this.formConfig.queryFormConfig || {}
       let query = this.getQueryFormData()
       let requestData = this.resolveRequestConfig(downloadUrlConfig, query)
       if (!(requestData.url && requestData.type)) {
-        return this.$message.warning("请求配置不全,请核对")
+        return this.$message.warning('请求配置不全,请核对')
       }
       this.$refs.queryForm.$refs.form.validate(valid => {
         if (valid) {
@@ -946,7 +992,7 @@ export default {
           query = this.formatQueryParams(query, queryFormConfig)
           this.commonDownload(requestData.url, requestData.type, {
             ...query,
-            ...(downloadUrlConfig.data || {})
+            ...(downloadUrlConfig.data || {}),
           })
             .then(() => {
               this.$refs.queryForm.downButton = false
@@ -956,10 +1002,10 @@ export default {
             })
         } else {
           setTimeout(() => {
-            let isError = document.getElementsByClassName("is-error")
+            let isError = document.getElementsByClassName('is-error')
             isError[0].scrollIntoView({
-              block: "center",
-              behavior: "smooth"
+              block: 'center',
+              behavior: 'smooth',
             })
           })
           return false
@@ -968,8 +1014,8 @@ export default {
     },
     // 公共查询接口,
     queryTableData() {
-      if (!this.urlConfig.hasOwnProperty("queryUrlConfig")) {
-        return this.$message.warning("请求配置不全,请核对")
+      if (!this.urlConfig.hasOwnProperty('queryUrlConfig')) {
+        return this.$message.warning('请求配置不全,请核对')
       }
       this.tableLoading = true
       this.tableData = []
@@ -978,14 +1024,14 @@ export default {
       let requestData = this.resolveRequestConfig(this.urlConfig.queryUrlConfig, query)
       if (!(requestData.url && requestData.type)) {
         this.tableLoading = false
-        return this.$message.warning("请求配置不全,请核对")
+        return this.$message.warning('请求配置不全,请核对')
       }
       //判断是否需要分页
       if (this.tableConfig.needPage != false) {
         query = {
           ...query,
           pageSize: this.pageSize,
-          pageNum: this.currentPage
+          pageNum: this.currentPage,
         }
       }
       //数字类型、数组转字符串等参数处理
@@ -995,16 +1041,16 @@ export default {
         requestData.type,
         query,
         requestData.needRequestHeader == true,
-        requestData.timeout
+        requestData.timeout,
       )
         .then(res => {
-          if (res.data.errorCode == "000000") {
+          if (res.data.errorCode == '000000') {
             if (this.tableConfig.needPage != false) {
               this.total = res.data.total || 0
             }
             let data = Array.isArray(res.data.data) ? res.data.data : []
             if (data.length == 0) {
-              this.$message.warning("查询为空")
+              this.$message.warning('查询为空')
             }
             if (queryFormConfig.dataTran) {
               this.tableData = queryFormConfig.dataTran(data)
@@ -1018,12 +1064,12 @@ export default {
             }
           } else {
             this.total = 0
-            this.$message.error(res.data.message || res.data.errorMsg || "失败")
+            this.$message.error(res.data.message || res.data.errorMsg || '失败')
           }
         })
         .catch(() => {
           this.total = 0
-          this.$message.error("查询失败,请稍后重试")
+          this.$message.error('查询失败,请稍后重试')
         })
         .finally(() => {
           this.tableLoading = false
@@ -1032,9 +1078,9 @@ export default {
     //显示公共表单
     showCommonFormDialog(name, title, data, formList) {
       let { formConfig } = this
-      let currentCommonFormName = name + "FormConfig"
+      let currentCommonFormName = name + 'FormConfig'
       if (!formConfig.hasOwnProperty(currentCommonFormName)) {
-        return this.$message.warning("未找到表单对应配置")
+        return this.$message.warning('未找到表单对应配置')
       }
       let obj = {} //保存表单配置
       this.commonFormTitle = title
@@ -1043,7 +1089,7 @@ export default {
         this.getCommonFormLabelWidth(formConfig[currentCommonFormName].formList)
       let defaultForm = cloneDeep({ ...data, ...formConfig[currentCommonFormName].defaultForm })
       for (let key in defaultForm) {
-        defaultForm[key] = [undefined, null].includes(defaultForm[key]) ? "" : defaultForm[key]
+        defaultForm[key] = [undefined, null].includes(defaultForm[key]) ? '' : defaultForm[key]
       }
       //判断是否有默认值
       if (!(Object.keys(defaultForm).length === 0 && defaultForm.constructor === Object)) {
@@ -1051,22 +1097,22 @@ export default {
         obj = {
           ...formConfig[currentCommonFormName],
           defaultForm,
-          labelWidth: labelWidth.toString()
+          labelWidth: labelWidth.toString(),
         }
       } else {
         obj = {
           ...formConfig[currentCommonFormName],
-          labelWidth: labelWidth.toString()
+          labelWidth: labelWidth.toString(),
         }
       }
       if (Array.isArray(formList) && formList.length > 0) {
         obj.formList = formList
       }
-      if (name.includes("detail") || name.includes("Detail")) {
+      if (name.includes('detail') || name.includes('Detail')) {
         obj.needSubmit = false
       }
       this.currentCommonFormName = currentCommonFormName
-      this.currentCommonFormUrlName = name + "UrlConfig"
+      this.currentCommonFormUrlName = name + 'UrlConfig'
       this.commonFormConfig = obj
       this.commonFormDialog = true
     },
@@ -1083,7 +1129,7 @@ export default {
               currentCommonFormUrlName,
               formConfig,
               urlConfig,
-              tableConfig
+              tableConfig,
             } = this
             let commonFormConfig = formConfig[currentCommonFormName]
             //判断是否有初始值
@@ -1100,10 +1146,13 @@ export default {
               //判断是否修改
               if (Array.isArray(list) && list.length > 0) {
                 list.forEach(x => {
-                  if (query.hasOwnProperty(x.prop) && currentCommonFormDefaultForm.hasOwnProperty(x.prop)) {
+                  if (
+                    query.hasOwnProperty(x.prop) &&
+                    currentCommonFormDefaultForm.hasOwnProperty(x.prop)
+                  ) {
                     let queryVal = query[x.prop]
                     if (x.needString && Array.isArray(queryVal)) {
-                      queryVal = queryVal.join(",")
+                      queryVal = queryVal.join(',')
                     }
                     if (queryVal != currentCommonFormDefaultForm[x.prop]) {
                       results = false
@@ -1112,51 +1161,60 @@ export default {
                 })
               }
               if (results) {
-                return this.$message.warning("未修改数据,不需要提交")
+                return this.$message.warning('未修改数据,不需要提交')
               }
             }
             //数字类型、数组转字符串等参数处理
             query = this.formatQueryParams(query, commonFormConfig)
-            if (commonFormConfig.hasOwnProperty("submitMethod") && typeof commonFormConfig.submitMethod == "function") {
+            if (
+              commonFormConfig.hasOwnProperty('submitMethod') &&
+              typeof commonFormConfig.submitMethod == 'function'
+            ) {
               return this.isMod == true
                 ? commonFormConfig.submitMethod(query, this.currentTableIndex)
                 : commonFormConfig.submitMethod(query)
             }
             if (!urlConfig.hasOwnProperty(this.currentCommonFormUrlName)) {
-              return this.$message.warning("请求配置不全,请核对")
+              return this.$message.warning('请求配置不全,请核对')
             }
             //获取地址和请求方式等参数配置
             let requestData = this.resolveRequestConfig(urlConfig[currentCommonFormUrlName], query)
             if (!(requestData.url && requestData.type)) {
-              return this.$message.warning("请求配置不全,请核对")
+              return this.$message.warning('请求配置不全,请核对')
             }
-            if (urlConfig[currentCommonFormUrlName].hasOwnProperty("data")) {
+            if (urlConfig[currentCommonFormUrlName].hasOwnProperty('data')) {
               query = {
                 ...query,
-                ...urlConfig[currentCommonFormUrlName].data
+                ...urlConfig[currentCommonFormUrlName].data,
               }
             } else {
               query = cloneDeep(query)
             }
-            this.commonRequest(requestData.url, requestData.type, query, requestData.needRequestHeader, requestData.timeout)
+            this.commonRequest(
+              requestData.url,
+              requestData.type,
+              query,
+              requestData.needRequestHeader,
+              requestData.timeout,
+            )
               .then(res => {
-                if (res.data.errorCode == "000000") {
-                  this.$message.success(res.data.message || res.data.errorMsg || "成功")
+                if (res.data.errorCode == '000000') {
+                  this.$message.success(res.data.message || res.data.errorMsg || '成功')
                   this.queryTableData() //获取表格数据
                   this.commonFormDialog = false
                 } else {
-                  this.$message.error(res.data.message || res.data.errorMsg || "失败")
+                  this.$message.error(res.data.message || res.data.errorMsg || '失败')
                 }
               })
               .catch(() => {
-                this.$message.error("提交失败,请稍后重试")
+                this.$message.error('提交失败,请稍后重试')
               })
           } else {
             setTimeout(() => {
-              let isError = document.getElementsByClassName("is-error")
+              let isError = document.getElementsByClassName('is-error')
               isError[0].scrollIntoView({
-                block: "center",
-                behavior: "smooth"
+                block: 'center',
+                behavior: 'smooth',
               })
             })
             return false
@@ -1166,10 +1224,10 @@ export default {
     },
     //表格删除按钮
     del(data) {
-      this.$confirm("是否确认删除？", "温馨提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
+      this.$confirm('是否确认删除？', '温馨提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
       })
         .then(() => {
           return this.requestDelete(data)
@@ -1182,21 +1240,23 @@ export default {
     //批量删除
     mulDelete() {
       if (!this.multipleSelection || this.multipleSelection.length === 0) {
-        return this.$message.warning("请先勾选需要删除的数据")
+        return this.$message.warning('请先勾选需要删除的数据')
       }
       const rows = this.multipleSelection.slice()
-      this.$confirm(`是否确认删除选中的 ${rows.length} 条数据？`, "温馨提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
+      this.$confirm(`是否确认删除选中的 ${rows.length} 条数据？`, '温馨提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
       })
         .then(async () => {
           //优先使用批量删除配置,未配置时复用单行删除配置
-          const urlConfigName = this.urlConfig.hasOwnProperty("mulDelUrlConfig") ? "mulDelUrlConfig" : "delUrlConfig"
+          const urlConfigName = this.urlConfig.hasOwnProperty('mulDelUrlConfig')
+            ? 'mulDelUrlConfig'
+            : 'delUrlConfig'
           for (const row of rows) {
             await this.requestDelete(row, urlConfigName, true)
           }
-          this.$message.success("批量删除成功")
+          this.$message.success('批量删除成功')
           this.queryTableData() //获取表格数据
           this.$nextTick(() => {
             this.multipleSelection = []
@@ -1206,16 +1266,16 @@ export default {
         .catch(() => {})
     },
     //删除请求(单行与批量共用)
-    async requestDelete(data, urlConfigName = "delUrlConfig", silent = false) {
+    async requestDelete(data, urlConfigName = 'delUrlConfig', silent = false) {
       const delUrlConfig = this.urlConfig[urlConfigName]
       if (!delUrlConfig) {
-        this.$message.warning("请求配置不全,请核对")
-        throw new Error("删除请求配置缺失")
+        this.$message.warning('请求配置不全,请核对')
+        throw new Error('删除请求配置缺失')
       }
       let requestData = this.resolveRequestConfig(delUrlConfig, data)
       if (!(requestData.url && requestData.type)) {
-        this.$message.warning("请求配置不全,请核对")
-        throw new Error("删除请求配置缺失")
+        this.$message.warning('请求配置不全,请核对')
+        throw new Error('删除请求配置缺失')
       }
       try {
         const res = await this.commonRequest(
@@ -1223,34 +1283,34 @@ export default {
           requestData.type,
           this.buildDelQuery(data, delUrlConfig),
           requestData.needRequestHeader,
-          requestData.timeout
+          requestData.timeout,
         )
-        if (res.data.errorCode == "000000") {
+        if (res.data.errorCode == '000000') {
           if (!silent) {
-            this.$message.success(res.data.message || res.data.errorMsg || "成功")
+            this.$message.success(res.data.message || res.data.errorMsg || '成功')
           }
         } else {
-          this.$message.error(res.data.message || res.data.errorMsg || "失败")
-          throw new Error("删除业务失败")
+          this.$message.error(res.data.message || res.data.errorMsg || '失败')
+          throw new Error('删除业务失败')
         }
       } catch (error) {
-        if (error && error.message === "删除业务失败") {
+        if (error && error.message === '删除业务失败') {
           throw error
         }
-        this.$message.error("删除失败,请稍后重试")
+        this.$message.error('删除失败,请稍后重试')
         throw error
       }
     },
     //构建删除请求参数
     buildDelQuery(data, delUrlConfig) {
       let query = {}
-      if (delUrlConfig.hasOwnProperty("data")) {
+      if (delUrlConfig.hasOwnProperty('data')) {
         if (Array.isArray(delUrlConfig.data) && delUrlConfig.data.length > 0) {
           delUrlConfig.data.forEach(x => {
-            query[x] = data[x] || ""
+            query[x] = data[x] || ''
           })
         } else {
-          query[delUrlConfig.data] = data[delUrlConfig.data] || ""
+          query[delUrlConfig.data] = data[delUrlConfig.data] || ''
         }
       } else {
         query = cloneDeep(data)
@@ -1264,12 +1324,12 @@ export default {
     },
     //解析请求配置(支持对象或函数形式)
     resolveRequestConfig(urlConfig, query) {
-      if (typeof urlConfig === "function") {
+      if (typeof urlConfig === 'function') {
         return urlConfig(query) || {}
       }
       return {
         ...urlConfig,
-        timeout: urlConfig.timeout || REQUEST_TIMEOUT
+        timeout: urlConfig.timeout || REQUEST_TIMEOUT,
       }
     },
     //查询参数统一处理:数字类型转换、数组转字符串
@@ -1278,14 +1338,14 @@ export default {
       if (formConfig && formConfig.needNumPropList && Array.isArray(formConfig.needNumPropList)) {
         for (let key in result) {
           if (formConfig.needNumPropList.includes(key)) {
-            result[key] = result[key] ? Number(result[key]) : ""
+            result[key] = result[key] ? Number(result[key]) : ''
           }
         }
       }
       if (formConfig && Array.isArray(formConfig.formList)) {
         formConfig.formList.forEach(x => {
-          if (x.needString == true && ["select", "checkBox"].includes(x.type)) {
-            result[x.prop] = Array.isArray(result[x.prop]) ? result[x.prop].join(",") : ""
+          if (x.needString == true && ['select', 'checkBox'].includes(x.type)) {
+            result[x.prop] = Array.isArray(result[x.prop]) ? result[x.prop].join(',') : ''
           }
         })
       }
@@ -1298,7 +1358,7 @@ export default {
       if (data instanceof FormData) {
         return (this.request || defaultRequest)({ url, method: type, data, headers: {}, timeout })
       }
-      if (["put", "post"].includes(type)) {
+      if (['put', 'post'].includes(type)) {
         //判断是否需要放在请求头里
         if (isNeedRequestHeader === true) {
           return (this.request || defaultRequest)({
@@ -1306,15 +1366,15 @@ export default {
             method: type,
             params: data,
             headers: {},
-            timeout
+            timeout,
           })
         } else {
           return (this.request || defaultRequest)({
             url,
             method: type,
             data,
-            headers: { "Content-Type": "application/json" },
-            timeout
+            headers: { 'Content-Type': 'application/json' },
+            timeout,
           })
         }
       } else {
@@ -1323,30 +1383,30 @@ export default {
           method: type,
           params: data,
           headers: {},
-          timeout
+          timeout,
         })
       }
     },
     //下载表格公共方法
     commonDownload(url, type, query, timeout) {
-      if (["put", "post"].includes(type)) {
+      if (['put', 'post'].includes(type)) {
         return (this.request || defaultRequest)({
           url,
           method: type,
-          responseType: "blob",
+          responseType: 'blob',
           data: query,
           params: {},
-          headers: { "Content-Type": "application/json" },
-          timeout
+          headers: { 'Content-Type': 'application/json' },
+          timeout,
         })
       } else {
         return (this.request || defaultRequest)({
           url,
           method: type,
-          responseType: "blob",
+          responseType: 'blob',
           params: query,
           headers: {},
-          timeout
+          timeout,
         })
       }
     },
@@ -1368,28 +1428,28 @@ export default {
       let str = data.toString().trim()
       for (let char of str) {
         //英文字符
-        if ((char >= "A" && char <= "Z") || (char >= "a" && char <= "z")) {
+        if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z')) {
           width += 12.5
         }
         //中文
-        else if (char >= "\u4e00" && char <= "\u9fa5") {
+        else if (char >= '\u4e00' && char <= '\u9fa5') {
           width += 19
         } else {
           width += 9
         }
       }
       return width
-    }
+    },
   },
   mounted() {
-    if (["local"].includes(getEnv().ENV_CONFIG)) {
+    if (['local'].includes(getEnv().ENV_CONFIG)) {
       this.submit()
     }
     const queryFormConfig = this.formConfig.queryFormConfig
     if (queryFormConfig && queryFormConfig.mounMeth) {
       this.tableData = queryFormConfig.mounMeth.call(this, this.tableData)
     }
-  }
+  },
 }
 </script>
 <style lang="scss" scoped>
