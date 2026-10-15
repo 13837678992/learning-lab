@@ -14,12 +14,14 @@ cc.Class({
 
     },
     onBeginContact(contact, self, other) {
-        // 貌似检测有点消耗性能
-        if (self.node && other.node) {
+        if (self.node && other.node && self.node.isValid && other.node.isValid) {
             const s = self.node.getComponent('Fruit')
             const o = other.node.getComponent('Fruit')
-            if (s && o && s.id === o.id) {
-                self.node.emit('sameContact', {self, other});
+            if (s && o) {
+                self.node.emit('fruitContact');
+                if (s.id === o.id) {
+                    self.node.emit('sameContact', {self, other});
+                }
             }
         }
     },

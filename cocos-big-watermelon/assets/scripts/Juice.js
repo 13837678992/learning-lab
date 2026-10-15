@@ -22,7 +22,7 @@ cc.Class({
 
     init(data) {
         this.particle = data.particle
-        this.circle = data.particle
+        this.circle = data.circle || data.particle
         this.slash = data.slash
     },
 
