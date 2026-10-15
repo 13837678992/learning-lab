@@ -1,6 +1,7 @@
 {
-  "ver": "2.3.5",
+  "ver": "2.3.7",
   "uuid": "1488f737-708d-432a-8094-d9455d2a7e59",
+  "importer": "texture",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -12,8 +13,9 @@
   "platformSettings": {},
   "subMetas": {
     "myFont": {
-      "ver": "1.0.4",
+      "ver": "1.0.6",
       "uuid": "8326b9de-e13e-4e08-87a3-a9334a77fa32",
+      "importer": "sprite-frame",
       "rawTextureUuid": "1488f737-708d-432a-8094-d9455d2a7e59",
       "trimType": "auto",
       "trimThreshold": 1,
