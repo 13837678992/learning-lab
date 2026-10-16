@@ -17,6 +17,16 @@
 
 ## 2. 构建命令
 
+推荐直接使用仓库内脚本（封装了下列全部步骤与补丁）：
+
+```bash
+tools/build_android.sh          # 默认 debug+release
+tools/build_android.sh debug    # 仅 debug
+tools/build_android.sh release  # 仅 release（主模块）
+```
+
+脚本内部步骤（手动执行时等价命令）：
+
 ```bash
 export JAVA_HOME=~/tools/zulu17.68.203-ca-jdk17.0.20.1-macosx_aarch64/Contents/Home
 export PATH=$HOME/tools/bin:$JAVA_HOME/bin:$PATH
@@ -25,7 +35,17 @@ export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
 
 cd /Users/weicheng/code/learning-lab/cocos-big-watermelon
 ~/tools/creator/CocosCreator.app/Contents/MacOS/CocosCreator --path . --build "platform=android;debug=true"
+# 补丁 gradle.properties 与 app/build.gradle 版本号（见下）
+# 删除 app/build/intermediates/assets 与 compressed_assets 强制资源重拷贝
+cd build/jsb-link/frameworks/runtime-src/proj.android-studio
+./gradlew assembleDebug :合成大西瓜:assembleRelease --no-daemon
 ```
+
+## 2.1 版本号管理
+
+- 唯一版本源：仓库根 `version.json`（当前 `{"versionName": "1.0.1", "versionCode": 2}`）。
+- Creator 每次构建会重新生成 `proj.android-studio/app/build.gradle`（内含 `versionCode 1 / versionName "1.0"`），因此 `tools/build_android.sh` 在构建前用 version.json 的值正则替换生成文件中的 `versionCode N` 与 `versionName "x.y.z"`。
+- 升级版本只需修改 `version.json` 后重跑脚本；APK 元数据经 aapt2 校验与配置一致。
 
 构建产物：`build/jsb-link/`（原生工程），APK 位于
 `build/jsb-link/frameworks/runtime-src/proj.android-studio/app/build/outputs/apk/debug/`。
