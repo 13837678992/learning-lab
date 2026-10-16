@@ -107,6 +107,56 @@ Web 自动化四套件全部通过（36+7+18+16 = 77 项断言）：
 - 回归：四套件 36+7+18+16=77 项全部通过；模拟器截屏确认飞行弧线、散布落位（左/中/右）、暂停层级正确
 - 版本：1.0.2/3 → 1.0.3/4（aapt2 实测一致）
 
+## 5.1 v1.0.4 投放失效修复验证
+
+**根因（均已用 Playwright + CDP 真实触摸在 web-mobile 构建上复现，非推测）**
+
+1. 输入所有权被水果节点抢走：`createOneFruit` 曾给每个水果注册 `TOUCH_START`，命中的水果会被引擎 claim + swallow，游戏节点的 `onTouchStart` 只靠事件冒泡执行。手势进行中该水果一旦被 `destroy()`（合成、消除道具、越界安全网），引擎 `_onPreDestroy → removeListeners` 会移除该 listener，`TOUCH_END`/`CANCEL` 再也不送达任何节点 → `activeTouchId` 永久残留 → 之后每次 `TOUCH_START` 都在 `activeTouchId !== null` 处提前返回。暂停/恢复不清除该变量，故「恢复后仍不能投」。
+   复现证据：按住静止水果时认领者是 `fruit_1`（Canvas 的 listener `_claimedTouches` 为空）→ 手势中销毁它 → 松手后 Canvas 收到 `START=1 END=0`，`activeTouchId=11` 卡死，后续连点 fruitCount 不动，暂停/恢复也无法恢复。
+2. 待投水果 `currentFruit` 被合成后无补位：待投水果是 Static + 半径 0 的刚体，被下落水果同级接触时 `onSameFruitContact` 把两者都销毁并把 `currentFruit` 置 null，而补位只由 `tryDrop` 末尾的 `scheduleOnce(spawnNextHeld)` 触发 → `tryDrop` 在 `!fruit` 处永久提前返回。
+   复现证据：在待投位置注入同级水果 → `currentFruit=null` 且 `needSpawn=false` → 之后点击永远投不出，暂停/恢复无效。
+
+**修复要点**：水果节点不再注册触摸监听（消除道具改为游戏节点自命中判定 `pickFruitAt`）；`tryDrop`/`onSameFruitContact`/补位链路保证「待投水果有且仅有一个」；`activeTouchId` 基于引擎触摸表自愈；暂停恢复时 `resetDropInput` 兜底重置投放输入与投放锁（不动水果/分数/进度）；投放与补位增加 try/catch 释放锁；新增默认关闭的诊断日志（`localStorage['bigwatermelon_debug']='1'` 开启，输出点击忽略原因、投放成功/失败、暂停恢复状态变化）。
+
+Web 自动化两套件（真实触摸驱动重构后的 web-mobile 构建，共 26 项断言）：
+
+| 用例 | 结果 |
+| --- | --- |
+| 开始游戏后有待投水果；点击可正常投放 | PASS |
+| 快速连点 6 次（60ms 间隔）仍遵守 0.3s 投放间隔；单次点击只投放一个 | PASS |
+| 点击落在水果上仍可投放（手势中认领触摸的节点 = Canvas，无水果抢所有权） | PASS |
+| 根因一回归：手势中销毁水果后松手，`activeTouchId=null` 且随后两次点击正常投放 | PASS |
+| 根因二回归：待投水果被同级水果砸中后投放不失效 | PASS |
+| 暂停/恢复 5 轮不自动多投；恢复后点击正常 | PASS |
+| 冷却期（投放后 0.12s）暂停恢复不卡死、不异常连发 | PASS |
+| 下落中暂停水果完全冻结（y 差 0.00），恢复后物理继续 | PASS |
+| 注入残留手势锁（touchId=9999）→ 后续点击自愈 | PASS |
+| 注入待投水果缺失 → 点击触发补位并成功投放 | PASS |
+| 暂停恢复兜底：清失效锁 + 补待投水果 | PASS |
+| 投放中途抛错 → 不锁死、可继续投放 | PASS |
+| 预制体缺失 → 不崩溃，恢复后可投放 | PASS |
+| 补位任务抛错 → 可恢复（补位锁不残留） | PASS |
+| 多指手势不重复投放、结束后状态干净 | PASS |
+| 按住时暂停、松手不投放，恢复后第一次点击正常 | PASS |
+| 回归：消除（含取消）/撤销/洗牌/重开/连续 3 轮/连续投放 20 次 | PASS |
+
+Android 模拟器（API 33 / arm64，v1.0.4 Debug 包，adb 真实触摸）：
+
+| 用例 | 结果 |
+| --- | --- |
+| 安装、启动、开始游戏、连续投放（合成到 2 级、分数 2） | PASS |
+| 直接点击「静止水果」上方也能投放（修复前该手势会被水果抢走） | PASS |
+| 暂停 → 继续游戏 → 立即投放（分数 8→14，有合成粒子） | PASS |
+| 连续 5 轮「暂停→继续→投放」（分数 8→18），进程存活 | PASS |
+| 消除道具进入选取态（高亮）→ 点水果移除一个并自动退出选取态 | PASS |
+| 洗牌：位置真实重排、数量/分数不变、洗牌后可继续投放 | PASS |
+| HOME 退后台再回前台：对局保留（分数 18），继续后投放正常 | PASS |
+| 全程 logcat 无 FATAL/AndroidRuntime/SIGSEGV，进程存活（pid 不变） | PASS |
+
+版本号：`versionName 1.0.3→1.0.4`、`versionCode 4→5`，aapt2 校验 Debug/Release APK 元数据一致，并从 APK 内解包脚本确认修复代码已打入（`ensureHeldFruit`/`resetDropInput`/`isStaleTouchLock`/`pickFruitAt`/`touchRegistryHas` 命中，旧的水果注册触摸写法 0 命中）。
+
+尚未覆盖：真机（本机无设备，仅模拟器）；模拟器无法真实"手指划出屏幕/系统手势抢占"的触摸丢失，该场景由注入法覆盖（模拟器 HOME/返回键路径已实测通过）。
+
 ## 6. 静态/包检查
 
 | 检查项 | 结果 |

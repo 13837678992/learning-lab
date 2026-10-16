@@ -77,3 +77,31 @@
 ## 5. 资源授权风险标记
 - 水果/果汁图片、音效均抓取自原版在线游戏（wesane），**未获得商用授权**，本项目仅个人学习使用，不得商用发布。
 - 字体 myFont 来源不明，同样仅限个人使用。
+
+## 6. v1.0.4 投放输入修复记录
+
+### 6.1 根因（已实测复现，非推测）
+
+| # | 根因 | 触发条件 | 后果 |
+| --- | --- | --- | --- |
+| 1 | 水果节点注册 `TOUCH_START` 并认领（claim + swallow）触摸，游戏节点只靠事件冒泡收到 | 手势进行中该水果被销毁（合成 `onSameFruitContact` 销毁两个节点、消除道具、`update` 越界安全网） | 引擎 `_onPreDestroy → removeListeners` 移除该 listener，`TOUCH_END`/`CANCEL` 不再送达任何节点 → `activeTouchId` 永久残留 → 后续每次 `TOUCH_START` 在 `activeTouchId !== null` 处提前返回。暂停/恢复不清理该变量，故「恢复后仍不能投」 |
+| 2 | 待投水果 `currentFruit` 会被下落水果同级接触合成（待投水果是 Static + 半径 0 刚体，仍参与接触） | 水果堆到投放口、或被注入同级水果 | `onSameFruitContact` 销毁两者并置 `currentFruit = null`，且补位只由 `tryDrop` 末尾触发 → `tryDrop` 在 `!fruit` 处永久提前返回 |
+
+复现方法：Playwright（Chromium）+ CDP `Input.dispatchTouchEvent` 驱动 web-mobile 构建，注入真实触摸。根因一的证据是「按住静止水果时认领触摸的节点是 `fruit_1`、Canvas 的 `_claimedTouches` 为空；手势中销毁它后松手，Canvas 收到 `START=1 END=0`」。
+
+### 6.2 修复
+
+| 位置 | 修改 |
+| --- | --- |
+| 输入所有权 | 水果不再注册任何触摸监听；消除道具改由游戏节点 `pickFruitAt()` 自行命中判定（与原有圆形判定一致：`width*0.6/2`） |
+| 投放状态机 | 新增统一补位入口 `ensureHeldFruit()`（有则不生成、补位在途则等待、缺失才补），保证 PLAYING 下「待投水果有且仅有一个」；`tryDrop` 在缺待投水果时触发补位而非静默返回 |
+| 合成 | 涉及 `currentFruit` 的接触直接忽略（待投水果属未投出的预览对象）；合成后仍校验并在缺失时补位 |
+| 手势锁自愈 | `activeTouchId` 残留时，用引擎触摸表（`cc.internal.inputManager.getGlobalTouches/getGlobalTouchCount`）判断旧触摸是否已消失；仅当本次触摸确实被表收录（表可信）且表中只剩一根手指时才释放，避免误判导致同一次点击被处理两次 |
+| 暂停恢复兜底 | `resumeGame` → `resetDropInput('暂停恢复')`：清 `activeTouchId`、按需补位、并校验输入监听是否缺失（缺失才补挂，不无条件重复注册） |
+| 异常路径 | `tryDrop` / `spawnNextHeld` / `createOneFruit` 增加失败保护：生成失败不推进计数、补位失败释放补位锁、投放中途抛错回滚并补位；补位锁带时间戳，超时视为失效并被接管（旧回调迟到时会跳过生成，避免重复投放） |
+| 诊断日志 | 新增默认关闭的日志（`localStorage['bigwatermelon_debug']='1'` 开启），覆盖点击忽略原因、投放成功/失败、暂停恢复状态变化、监听注册/清理时机；不逐帧输出 |
+
+未改动：投放间隔（0.3s）、生成规则、合成规则、暂停菜单、洗牌与全部道具行为。
+
+验证：Web 自动化 26 项断言 + 长局压力（6 轮 × 25 次点击，150/150 投放成功、无残留锁、投放率不劣化）+ Android 模拟器 adb 真实触摸（投放/点水果上投放/暂停恢复 5 轮/消除/洗牌/切后台回前台，无崩溃）。详见 `docs/test-report.md` 第 5.1 节。测试脚本在 `tools/wm-test/`。
+

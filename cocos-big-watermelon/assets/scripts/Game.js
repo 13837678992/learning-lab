@@ -40,6 +40,18 @@ const SHUFFLE_CFG = {
     unlockDelay: 0.9,  // 全部落位后解除洗牌锁（等待自然落定）
     attempts: 6        // 布局置换择优的有限尝试次数（防无限循环）
 };
+const DEBUG_KEY = 'bigwatermelon_debug';
+
+// 诊断开关：默认关闭，排查偶发问题时在 localStorage 写入
+//   cc.sys.localStorage.setItem('bigwatermelon_debug', '1')
+// 后重启游戏即可打开；也可在控制台直接置 game.debugOn = true。
+function debugEnabled() {
+    try {
+        return cc.sys.localStorage.getItem(DEBUG_KEY) === '1';
+    } catch (e) {
+        return false;
+    }
+}
 
 cc.Class({
     extends: cc.Component,
@@ -107,16 +119,23 @@ cc.Class({
         this.lastKnockTime = 0;
         this.activeTouchId = null;
         this.aimX = 0;
+        this._heldSpawnPending = false;
+        this._heldSpawnAt = 0;
 
         this.currentFruit = null;
         this.nextFruitId = 1;
 
+        this.debugOn = debugEnabled();
         this.initPhysics();
 
+        // 触摸只在游戏节点（全屏 Canvas）注册：水果等子节点不再抢触摸所有权。
+        // 若由水果节点认领触摸，一旦该水果在手势结束前被销毁（合成/消除/越界回收），
+        // 引擎不会再把 TOUCH_END/CANCEL 送到任何节点，手势将永远无法收尾。
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+        this.log('输入', '监听注册完成 TOUCH_START/MOVE/END/CANCEL');
 
         cc.systemEvent.on(cc.SystemEvent.EventType.KEYDOWN, this.onKeyDown, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEYUP, this.onKeyDown, this);
@@ -145,10 +164,30 @@ cc.Class({
         cc.systemEvent.off(cc.SystemEvent.EventType.KEYUP, this.onKeyDown, this);
         cc.game.off(cc.game.EVENT_HIDE, this.onGameHide, this);
         cc.game.off(cc.game.EVENT_SHOW, this.onGameShow, this);
+        this.log('输入', '监听清理完成');
     },
 
     gameTime() {
         return cc.director.getTotalTime() / 1000;
+    },
+
+    // ---------------- 诊断日志 ----------------
+    // 默认关闭：仅当 localStorage['bigwatermelon_debug']==='1' 时输出，
+    // 用于复现偶发的投放失效问题；不在每帧输出。
+    log(tag, msg) {
+        if (!this.debugOn) return;
+        cc.log('[投放诊断][' + tag + '] ' + msg);
+    },
+
+    // 投放相关状态快照（用于日志定位，不影响逻辑）
+    dropSnapshot() {
+        return 'state=' + this.state +
+            ' touchId=' + this.activeTouchId +
+            ' 待投=' + (this.currentFruit && this.currentFruit.isValid ? '有' : '无') +
+            ' 补位中=' + this._heldSpawnPending +
+            ' needSpawn=' + this.needSpawn +
+            ' 洗牌中=' + this.shuffling +
+            ' 距上次投放=' + (this.gameTime() - this.lastDropTime).toFixed(2) + 's';
     },
 
     // ---------------- 存档 ----------------
@@ -444,6 +483,9 @@ cc.Class({
         this.shuffling = false;
         this._shuffleFlights = null;
         this.removeMode = false;
+        this.activeTouchId = null;
+        this._heldSpawnPending = false;
+        this._heldSpawnAt = 0;
         this.refreshItemHighlights();
         this.menuLayer.active = true;
         this.pauseLayer.active = false;
@@ -467,6 +509,8 @@ cc.Class({
         this.undoStack = [];
         this.overTimer = 0;
         this.activeTouchId = null;
+        this._heldSpawnPending = false;
+        this._heldSpawnAt = 0;
         this.aimX = 0;
         this.scoreLabel.string = '0';
         this.menuLayer.active = false;
@@ -480,6 +524,9 @@ cc.Class({
     pauseGame() {
         if (this.state !== STATE.PLAYING) return;
         this.state = STATE.PAUSED;
+        // 暂停期间不会有新的投放，进行中的手势也不可能继续；
+        // 这里只记录状态用于诊断，收尾统一由 resumeGame → resetDropInput 处理。
+        this.log('暂停', '暂停时投放状态：' + this.dropSnapshot());
         cc.director.getPhysicsManager().enabled = false;
         this.pauseLayer.active = true;
         this.drawAimLine();
@@ -490,10 +537,10 @@ cc.Class({
         this.state = STATE.PLAYING;
         cc.director.getPhysicsManager().enabled = true;
         this.pauseLayer.active = false;
-        if (this.needSpawn) {
-            this.needSpawn = false;
-            this.spawnNextHeld();
-        }
+        // 兜底：恢复交互时重置「投放输入 / 投放锁 / 补位任务」这一组状态，
+        // 修复暂停前后可能残留的失效手势锁，保证继续后第一次点击即可按正常规则投放。
+        // 注意：不触碰场上水果、分数、进度与洗牌结果。
+        this.resetDropInput('暂停恢复');
         this.drawAimLine();
     },
 
@@ -504,6 +551,9 @@ cc.Class({
         this.finishShuffle();
         this.removeMode = false;
         this.unscheduleAllCallbacks();
+        this._heldSpawnPending = false;
+        this._heldSpawnAt = 0;
+        this.activeTouchId = null;
         this.refreshItemHighlights();
         if (this.score > this.bestScore) {
             this.bestScore = this.score;
@@ -571,8 +621,16 @@ cc.Class({
     },
 
     initOneFruit(id) {
+        const fruit = this.createFruitOnPos(this.aimX, this.spawnY, id);
+        if (!fruit || !fruit.isValid) {
+            // 预制体/节点创建失败：不推进计数与预览，保持「无待投水果」状态，
+            // 由 ensureHeldFruit 在下次点击或恢复时重试。
+            this.currentFruit = null;
+            cc.error('[投放] 待投水果创建失败，id=' + id);
+            return;
+        }
         this.fruitCount++;
-        this.currentFruit = this.createFruitOnPos(this.aimX, this.spawnY, id);
+        this.currentFruit = fruit;
         this.currentFruit._birth = this.gameTime();
         this.nextFruitId = this.calcNextId();
         this.updateNextPreview();
@@ -580,8 +638,13 @@ cc.Class({
     },
 
     createOneFruit(num) {
-        const fruit = cc.instantiate(this.fruitPrefab);
         const config = this.fruits[num - 1];
+        if (!this.fruitPrefab || !config) {
+            cc.error('[投放] 缺少水果预制体或配置，num=' + num);
+            return null;
+        }
+        const fruit = cc.instantiate(this.fruitPrefab);
+        if (!fruit) return null;
 
         fruit.getComponent('Fruit').init({
             id: config.id,
@@ -596,13 +659,9 @@ cc.Class({
 
         fruit.on('sameContact', this.onSameFruitContact.bind(this));
         fruit.on('fruitContact', this.onFruitKnock, this);
-        fruit.on(cc.Node.EventType.TOUCH_START, (e) => {
-            // 消除道具：点选一个水果将其移除
-            if (this.removeMode && this.state === STATE.PLAYING && fruit !== this.currentFruit) {
-                e.stopPropagation();
-                this.removeFruitByItem(fruit);
-            }
-        }, this);
+        // 水果节点不注册触摸监听（消除道具的命中判定由游戏节点统一处理）：
+        // 一旦水果认领了触摸又在手势结束前被销毁，TOUCH_END 将永远丢失，
+        // 导致 activeTouchId 卡死、后续点击全部无效。
 
         return fruit;
     },
@@ -627,6 +686,7 @@ cc.Class({
 
     createFruitOnPos(x, y, type) {
         const fruit = this.createOneFruit(type);
+        if (!fruit) return null;
         fruit.setPosition(cc.v2(x, y));
         return fruit;
     },
@@ -638,12 +698,34 @@ cc.Class({
     },
 
     // ---------------- 触摸 ----------------
+    // 输入所有权：只有游戏节点认领触摸，水果节点不注册任何触摸监听。
+    // 这样即使手势过程中水果被销毁（合成/消除/越界回收），也不会丢失 TOUCH_END。
     onTouchStart(e) {
-        if (this.state !== STATE.PLAYING) return;
-        if (this.activeTouchId !== null) return;
+        if (this.state !== STATE.PLAYING) {
+            this.log('点击', '忽略：非进行中（' + this.dropSnapshot() + '）');
+            return;
+        }
+        if (this.activeTouchId !== null) {
+            // 上一次手势的结束事件曾丢失（切后台、系统手势、触摸被系统抢占等），
+            // 确认该触摸已不存在时判定为失效锁并自动释放，否则维持防重复点击。
+            if (this.isStaleTouchLock(e.getID())) {
+                this.log('输入', '检测到失效触摸锁 touchId=' + this.activeTouchId + '，已自动释放');
+                this.resetDropInput('触摸失活');
+            } else {
+                this.log('点击', '忽略：另一手势进行中（touchId=' + this.activeTouchId + '）');
+                return;
+            }
+        }
         this.activeTouchId = e.getID();
 
         if (this.removeMode) {
+            // 消除道具：在游戏节点上自行命中判定，不再依赖水果节点的触摸事件
+            const target = this.pickFruitAt(this.toLocalPos(e.getLocation()));
+            if (target) {
+                this.activeTouchId = null;
+                this.removeFruitByItem(target);
+                return;
+            }
             // 点空白处取消消除模式
             this.removeMode = false;
             this.refreshItemHighlights();
@@ -651,7 +733,10 @@ cc.Class({
             return;
         }
 
-        if (!this.currentFruit) return;
+        if (!this.currentFruit) {
+            this.log('点击', '未瞄准：当前无待投水果（' + this.dropSnapshot() + '）');
+            return;
+        }
         this.aimX = this.clampX(this.toLocalX(e.getLocation().x), this.currentFruit);
         this.currentFruit.x = this.aimX;
         this.drawAimLine();
@@ -669,8 +754,44 @@ cc.Class({
     onTouchEnd(e) {
         if (this.activeTouchId !== e.getID()) return;
         this.activeTouchId = null;
-        if (this.state !== STATE.PLAYING) return;
+        if (this.state !== STATE.PLAYING) {
+            this.log('点击', '松手忽略：非进行中（' + this.dropSnapshot() + '）');
+            return;
+        }
         this.tryDrop();
+    },
+
+    // 引擎维护的活跃触摸表（cc.internal.inputManager）：
+    // 用于判断残留的 activeTouchId 是否真的还有手指按着。
+    // 只有「本次 TOUCH_START 的触摸确实能在表中查到」时才认为该表可信，
+    // 否则不做任何推断，避免误判导致同一次点击被处理两次。
+    touchRegistryHas(touchId) {
+        const im = cc.internal && cc.internal.inputManager;
+        if (!im || typeof im.getGlobalTouches !== 'function') return false;
+        const touches = im.getGlobalTouches() || {};
+        for (const key in touches) {
+            const t = touches[key];
+            if (t && typeof t.getID === 'function' && t.getID() === touchId) return true;
+        }
+        return false;
+    },
+
+    liveTouchCount() {
+        const im = cc.internal && cc.internal.inputManager;
+        if (!im || typeof im.getGlobalTouchCount !== 'function') return -1;
+        return im.getGlobalTouchCount();
+    },
+
+    // 判断残留的 activeTouchId 是否已经失效（对应手指早已抬起，END/CANCEL 丢失）。
+    // 判据一：当前这次 TOUCH_START 已被引擎触摸表收录（表可信），且表中只有这一根手指
+    //         —— 说明旧的触摸必然已经结束（否则表中会是 2 根）。
+    // 该判据不依赖 touchId 本身，因此不受 Android 复用 pointerId 的影响。
+    // 判据二：表可信，且旧的 touchId 已不在表中。
+    isStaleTouchLock(currentTouchId) {
+        if (!this.touchRegistryHas(currentTouchId)) return false; // 表不可信，不做推断
+        const live = this.liveTouchCount();
+        if (live === 1) return true;
+        return !this.touchRegistryHas(this.activeTouchId);
     },
 
     toLocalX(screenX) {
@@ -678,31 +799,149 @@ cc.Class({
         return pos.x;
     },
 
+    toLocalPos(screenPos) {
+        return this.node.convertToNodeSpaceAR(cc.v2(screenPos.x, screenPos.y));
+    },
+
+    // 命中判定：返回点击位置下最上层的场上水果（用于消除道具）
+    pickFruitAt(localPos) {
+        const fruits = this.getFieldFruits();
+        for (let i = fruits.length - 1; i >= 0; i--) {
+            const fruit = fruits[i];
+            const r = fruit.width * 0.6 / 2;
+            const dx = localPos.x - fruit.x;
+            const dy = localPos.y - fruit.y;
+            if (dx * dx + dy * dy <= r * r) return fruit;
+        }
+        return null;
+    },
+
     // 投放间隔时间锁：与场上水果是否落稳无关，只限制两次成功投放的最小间隔
     tryDrop() {
-        if (this.shuffling) return;
+        if (this.shuffling) {
+            this.log('投放', '忽略：洗牌进行中');
+            return;
+        }
         const now = this.gameTime();
-        if (now - this.lastDropTime < DROP_INTERVAL) return;
+        if (now - this.lastDropTime < DROP_INTERVAL) {
+            this.log('投放', '忽略：间隔未到（还需 ' + (DROP_INTERVAL - (now - this.lastDropTime)).toFixed(2) + 's）');
+            return;
+        }
         const fruit = this.currentFruit;
-        if (!fruit || !fruit.isValid) return;
+        if (!fruit || !fruit.isValid) {
+            // 待投水果缺失（例如被下落水果接触合成）：立即补位，避免投放永久失效
+            this.log('投放', '待投水果缺失，触发补位（' + this.dropSnapshot() + '）');
+            this.ensureHeldFruit();
+            return;
+        }
 
         this.lastDropTime = now;
         this.pushUndoSnapshot(fruit);
 
-        this.currentFruit = null;
-        fruit._birth = now;
-        this.startFruitPhysics(fruit);
-        this.drawAimLine();
+        try {
+            this.currentFruit = null;
+            fruit._birth = now;
+            this.startFruitPhysics(fruit);
+            this.drawAimLine();
 
-        this.scheduleOnce(this.spawnNextHeld, SPAWN_DELAY);
+            // 补位：SPAWN_DELAY 后取出下一个待投水果
+            this._heldSpawnPending = true;
+            this._heldSpawnAt = now;
+            this.scheduleOnce(this.spawnNextHeld, SPAWN_DELAY);
+            this.log('投放', '成功投放 id=' + fruit.getComponent('Fruit').id + '（' + this.dropSnapshot() + '）');
+        } catch (err) {
+            // 投放中途异常（组件缺失、物理异常等）：释放全部投放锁并回到可用状态，
+            // 避免 currentFruit/补位任务停在中间态导致之后永远投不出。
+            this._heldSpawnPending = false;
+            this._heldSpawnAt = 0;
+            this.currentFruit = null;
+            if (fruit && fruit.isValid) fruit.destroy();
+            this.ensureHeldFruit();
+            cc.error('[投放] 投放失败，已释放投放状态：' + err);
+        }
     },
 
+    // 补位任务：无论成功、失败还是提前返回，都先清掉「补位中」标记，
+    // 保证投放锁不会停在中间态导致之后永远投不出。
     spawnNextHeld() {
-        if (this.state !== STATE.PLAYING) {
-            this.needSpawn = true;
+        this._heldSpawnPending = false;
+        this._heldSpawnAt = 0;
+        try {
+            if (this.state !== STATE.PLAYING) {
+                // 暂停/结算期间不生成，等恢复或重新开始时补
+                this.needSpawn = true;
+                this.log('投放', '补位延后（非进行中，needSpawn=true）');
+                return;
+            }
+            // 已经有待投水果时不再生成（例如补位任务超时被接管后，旧回调迟到）：
+            // 保证「有且仅有一个」，避免一次投放变成两个。
+            if (this.currentFruit && this.currentFruit.isValid) {
+                this.log('投放', '补位跳过：已存在待投水果');
+                return;
+            }
+            this.initOneFruit(this.nextFruitId);
+            this.log('投放', '补位完成 next=' + this.nextFruitId);
+        } catch (err) {
+            cc.error('[投放] 补位失败，已释放补位状态：' + err);
+        }
+    },
+
+    // 统一的待投水果补位入口：保证 PLAYING 状态下「有且仅有一个」待投水果。
+    // 补位任务在途时不重复生成，避免一次点击投出两个水果。
+    ensureHeldFruit() {
+        if (this.state !== STATE.PLAYING) return;
+        if (this.currentFruit && this.currentFruit.isValid) return;
+        if (this._heldSpawnPending) {
+            // 补位任务在途：正常只持续 SPAWN_DELAY（0.25s）。
+            // 若远超预期仍未落地（回调抛错导致标记未清），视为失效任务并接管。
+            const pendingFor = this.gameTime() - (this._heldSpawnAt || 0);
+            if (pendingFor < SPAWN_DELAY * 4) return;
+            this._heldSpawnPending = false;
+            this._heldSpawnAt = 0;
+            this.log('投放', '补位任务已失效（' + pendingFor.toFixed(2) + 's 未完成），重新补位');
+        }
+        if (this.needSpawn) {
+            this.needSpawn = false;
+            this.spawnNextHeld();
             return;
         }
         this.initOneFruit(this.nextFruitId);
+        this.log('投放', '兜底补位待投水果 next=' + this.nextFruitId);
+    },
+
+    // 输入监听健康检查：仅在确认监听器确实缺失时补挂（不无条件重复注册）。
+    // node.on 对同一 callback+target 是幂等的，这里再加 hasEventListener 前置判断，
+    // 保证正常情况下完全不做多余操作。
+    ensureInputListeners() {
+        const T = cc.Node.EventType;
+        const missing = [];
+        if (!this.node.hasEventListener(T.TOUCH_START)) missing.push('TOUCH_START');
+        if (!this.node.hasEventListener(T.TOUCH_MOVE)) missing.push('TOUCH_MOVE');
+        if (!this.node.hasEventListener(T.TOUCH_END)) missing.push('TOUCH_END');
+        if (!this.node.hasEventListener(T.TOUCH_CANCEL)) missing.push('TOUCH_CANCEL');
+        if (missing.length === 0) return;
+        if (missing.indexOf('TOUCH_START') >= 0) this.node.on(T.TOUCH_START, this.onTouchStart, this);
+        if (missing.indexOf('TOUCH_MOVE') >= 0) this.node.on(T.TOUCH_MOVE, this.onTouchMove, this);
+        if (missing.indexOf('TOUCH_END') >= 0) this.node.on(T.TOUCH_END, this.onTouchEnd, this);
+        if (missing.indexOf('TOUCH_CANCEL') >= 0) this.node.on(T.TOUCH_CANCEL, this.onTouchEnd, this);
+        this.log('输入', '检测到监听缺失并补挂：' + missing.join('/'));
+    },
+
+    // 投放输入与投放锁的安全重置（仅投放相关状态，不触碰水果/分数/进度）。
+    // 用于：触摸失活自愈、暂停恢复兜底。
+    // 待投水果的补位交给 ensureHeldFruit 统一处理：
+    //   - 已有待投水果 → 什么都不做（不重复生成）
+    //   - 补位任务在途   → 等待该任务完成（不重复生成）
+    //   - 确实缺失       → 补一个，保证恢复后第一次点击能正常投放
+    resetDropInput(reason) {
+        const wasLocked = this.activeTouchId !== null;
+        this.activeTouchId = null;
+        const hadHeld = !!(this.currentFruit && this.currentFruit.isValid);
+        this.ensureInputListeners();
+        this.ensureHeldFruit();
+        this.log('恢复', '投放输入重置（原因：' + reason + '，' +
+            '释放手势锁=' + (wasLocked ? '是' : '否') +
+            '，重置前待投=' + (hadHeld ? '有' : '无') + '，' + this.dropSnapshot() + '）');
     },
 
     // ---------------- 合成 ----------------
@@ -710,6 +949,13 @@ cc.Class({
         const selfNode = self && self.node;
         const otherNode = other && other.node;
         if (!selfNode || !otherNode || !selfNode.isValid || !otherNode.isValid) return;
+        // 待投水果（手中的水果）不参与合成：它是尚未投出的预览对象，
+        // 一旦被合成销毁，currentFruit 会变成 null 且没有任何补位任务，
+        // 之后 tryDrop 会在「无待投水果」处永久提前返回（点击再也不能投放）。
+        if (selfNode === this.currentFruit || otherNode === this.currentFruit) {
+            this.log('合成', '忽略涉及待投水果的接触（' + this.dropSnapshot() + '）');
+            return;
+        }
         if (selfNode._merging || otherNode._merging) return;
         selfNode._merging = true;
         otherNode._merging = true;
@@ -718,9 +964,6 @@ cc.Class({
 
         const id = selfNode.getComponent('Fruit').id;
         const pos = cc.v2((selfNode.x + otherNode.x) / 2, (selfNode.y + otherNode.y) / 2);
-
-        if (selfNode === this.currentFruit) this.currentFruit = null;
-        if (otherNode === this.currentFruit) this.currentFruit = null;
 
         selfNode.destroy();
         otherNode.destroy();
@@ -731,16 +974,23 @@ cc.Class({
         const nextId = id + 1;
         if (nextId <= MAX_FRUIT_ID) {
             const newFruit = this.createFruitOnPos(pos.x, pos.y, nextId);
-            newFruit._birth = this.gameTime();
-            newFruit._merging = false;
-            this.startFruitPhysics(newFruit);
+            if (newFruit) {
+                newFruit._birth = this.gameTime();
+                newFruit._merging = false;
+                this.startFruitPhysics(newFruit);
 
-            newFruit.scale = 0;
-            cc.tween(newFruit).to(0.35, { scale: 0.6 }, { easing: 'backOut' }).start();
+                newFruit.scale = 0;
+                cc.tween(newFruit).to(0.35, { scale: 0.6 }, { easing: 'backOut' }).start();
+            }
         } else {
             // 两个大西瓜合成：直接消除并奖励大量分数
             this.createFruitJuice(MAX_FRUIT_ID, pos, 300);
             this.addScore(256);
+        }
+
+        // 合成不应影响待投水果；若因异常情况缺失，这里补位，避免投放锁死
+        if (!this.currentFruit || !this.currentFruit.isValid) {
+            this.ensureHeldFruit();
         }
     },
 
@@ -842,10 +1092,14 @@ cc.Class({
         this.lastDropTime = -1000;
         this.removeMode = false;
         this.overTimer = 0;
+        // 补位任务随 unscheduleAllCallbacks 一并取消，避免它之后又生成一个待投水果
+        this._heldSpawnPending = false;
+        this._heldSpawnAt = 0;
         this.refreshItemHighlights();
 
         for (const f of snapshot.fruits) {
             const fruit = this.createFruitOnPos(f.x, f.y, f.id);
+            if (!fruit) continue;
             fruit._birth = this.gameTime();
             this.startFruitPhysics(fruit);
             const body = fruit.getComponent(cc.RigidBody);
