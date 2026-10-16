@@ -19,6 +19,20 @@ const MAX_FRUIT_ID = 11;
 const STATE = { MENU: 0, PLAYING: 1, PAUSED: 2, OVER: 3 };
 const SAVE_KEY = 'bigwatermelon_save_v1';
 
+// 下落/投放/洗牌参数集中管理
+const GRAVITY = 960;
+const FALL_CFG = {
+    v0: 60,          // 投放初始下落速度
+    accel: 700,      // 下落加速度（线性加速，v = v0 + accel * t）
+    vmax: 1150,      // 最大下落速度
+    settleSpeed: 24, // 判定落稳的速度阈值
+    settleTime: 0.25 // 持续低于阈值多久视为落稳
+};
+const DROP_INTERVAL = 0.3;  // 两次投放的最小时间间隔（秒）
+const SPAWN_DELAY = 0.25;   // 投放后下一个待投水果出现延迟
+const SHUFFLE_COOLDOWN = 0.5; // 洗牌防连点冷却（秒）
+const SHUFFLE_IMPULSE = { up: 280, spin: 2 }; // 统一向上速度，避免水果间相对运动导致意外合成
+
 cc.Class({
     extends: cc.Component,
 
@@ -69,7 +83,6 @@ cc.Class({
         this.loadSave();
 
         this.state = STATE.MENU;
-        this.isCreating = false;
         this.needSpawn = false;
         this.fruitCount = 0;
         this.score = 0;
@@ -78,7 +91,8 @@ cc.Class({
 
         this.removeMode = false;
         this.aimEnabled = true;
-        this.shuffling = false;
+        this.lastDropTime = -1000;
+        this.lastShuffleTime = -1000;
         this.undoStack = [];
         this.overTimer = 0;
         this.lastKnockTime = 0;
@@ -124,6 +138,10 @@ cc.Class({
         cc.game.off(cc.game.EVENT_SHOW, this.onGameShow, this);
     },
 
+    gameTime() {
+        return cc.director.getTotalTime() / 1000;
+    },
+
     // ---------------- 存档 ----------------
     loadSave() {
         this.saveData = {};
@@ -147,7 +165,7 @@ cc.Class({
     initPhysics() {
         const instance = cc.director.getPhysicsManager();
         instance.enabled = true;
-        instance.gravity = cc.v2(0, -960);
+        instance.gravity = cc.v2(0, -GRAVITY);
 
         const collisionManager = cc.director.getCollisionManager();
         collisionManager.enabled = true;
@@ -410,8 +428,8 @@ cc.Class({
         this.state = STATE.MENU;
         this.clearField();
         this.unscheduleAllCallbacks();
-        this.isCreating = false;
         this.needSpawn = false;
+        this.lastDropTime = -1000;
         this.removeMode = false;
         this.refreshItemHighlights();
         this.menuLayer.active = true;
@@ -428,10 +446,10 @@ cc.Class({
         this.state = STATE.PLAYING;
         this.score = 0;
         this.fruitCount = 0;
-        this.isCreating = false;
         this.needSpawn = false;
+        this.lastDropTime = -1000;
+        this.lastShuffleTime = -1000;
         this.removeMode = false;
-        this.shuffling = false;
         this.undoStack = [];
         this.overTimer = 0;
         this.activeTouchId = null;
@@ -460,8 +478,7 @@ cc.Class({
         this.pauseLayer.active = false;
         if (this.needSpawn) {
             this.needSpawn = false;
-            this.isCreating = false;
-            this.initOneFruit(this.nextFruitId);
+            this.spawnNextHeld();
         }
         this.drawAimLine();
     },
@@ -469,7 +486,6 @@ cc.Class({
     gameOver() {
         if (this.state !== STATE.PLAYING) return;
         this.state = STATE.OVER;
-        this.isCreating = false;
         this.needSpawn = false;
         this.removeMode = false;
         this.unscheduleAllCallbacks();
@@ -542,7 +558,7 @@ cc.Class({
     initOneFruit(id) {
         this.fruitCount++;
         this.currentFruit = this.createFruitOnPos(this.aimX, this.spawnY, id);
-        this.currentFruit._birth = cc.director.getTotalTime();
+        this.currentFruit._birth = this.gameTime();
         this.nextFruitId = this.calcNextId();
         this.updateNextPreview();
         this.drawAimLine();
@@ -583,6 +599,15 @@ cc.Class({
         const collider = fruit.getComponent(cc.PhysicsCircleCollider);
         collider.radius = fruit.height / 2;
         collider.apply();
+
+        // 线性加速下落：用 gravityScale 控制加速度（不叠加第二套重力），
+        // 使 v = v0 + accel * t，达到 vmax 后停止加速
+        fruit._fallTime = 0;
+        fruit._settled = false;
+        fruit._slowTimer = 0;
+        fruit._capped = false;
+        body.gravityScale = FALL_CFG.accel / GRAVITY;
+        body.linearVelocity = cc.v2(0, -FALL_CFG.v0);
     },
 
     createFruitOnPos(x, y, type) {
@@ -611,7 +636,7 @@ cc.Class({
             return;
         }
 
-        if (this.isCreating || this.shuffling || !this.currentFruit) return;
+        if (!this.currentFruit) return;
         this.aimX = this.clampX(this.toLocalX(e.getLocation().x), this.currentFruit);
         this.currentFruit.x = this.aimX;
         this.drawAimLine();
@@ -620,7 +645,7 @@ cc.Class({
     onTouchMove(e) {
         if (this.state !== STATE.PLAYING) return;
         if (this.activeTouchId !== e.getID()) return;
-        if (this.isCreating || this.shuffling || !this.currentFruit) return;
+        if (!this.currentFruit) return;
         this.aimX = this.clampX(this.toLocalX(e.getLocation().x), this.currentFruit);
         this.currentFruit.x = this.aimX;
         this.drawAimLine();
@@ -630,8 +655,7 @@ cc.Class({
         if (this.activeTouchId !== e.getID()) return;
         this.activeTouchId = null;
         if (this.state !== STATE.PLAYING) return;
-        if (this.isCreating || this.shuffling || !this.currentFruit) return;
-        this.dropFruit();
+        this.tryDrop();
     },
 
     toLocalX(screenX) {
@@ -639,26 +663,30 @@ cc.Class({
         return pos.x;
     },
 
-    dropFruit() {
+    // 投放间隔时间锁：与场上水果是否落稳无关，只限制两次成功投放的最小间隔
+    tryDrop() {
+        const now = this.gameTime();
+        if (now - this.lastDropTime < DROP_INTERVAL) return;
         const fruit = this.currentFruit;
         if (!fruit || !fruit.isValid) return;
 
+        this.lastDropTime = now;
         this.pushUndoSnapshot(fruit);
 
-        this.isCreating = true;
         this.currentFruit = null;
-        fruit._birth = cc.director.getTotalTime();
+        fruit._birth = now;
         this.startFruitPhysics(fruit);
         this.drawAimLine();
 
-        this.scheduleOnce(() => {
-            if (this.state !== STATE.PLAYING) {
-                this.needSpawn = true;
-                return;
-            }
-            this.isCreating = false;
-            this.initOneFruit(this.nextFruitId);
-        }, 0.55);
+        this.scheduleOnce(this.spawnNextHeld, SPAWN_DELAY);
+    },
+
+    spawnNextHeld() {
+        if (this.state !== STATE.PLAYING) {
+            this.needSpawn = true;
+            return;
+        }
+        this.initOneFruit(this.nextFruitId);
     },
 
     // ---------------- 合成 ----------------
@@ -687,7 +715,7 @@ cc.Class({
         const nextId = id + 1;
         if (nextId <= MAX_FRUIT_ID) {
             const newFruit = this.createFruitOnPos(pos.x, pos.y, nextId);
-            newFruit._birth = cc.director.getTotalTime();
+            newFruit._birth = this.gameTime();
             newFruit._merging = false;
             this.startFruitPhysics(newFruit);
 
@@ -702,7 +730,7 @@ cc.Class({
 
     onFruitKnock() {
         if (!this.soundOn) return;
-        const now = cc.director.getTotalTime();
+        const now = this.gameTime();
         if (now - this.lastKnockTime < 0.12) return;
         this.lastKnockTime = now;
         this.playSfx(this.knockAudio, 0.25);
@@ -788,25 +816,27 @@ cc.Class({
     },
 
     undoLastDrop() {
-        if (this.shuffling) return;
         if (this.undoStack.length === 0) return;
         const snapshot = this.undoStack.pop();
 
         this.unscheduleAllCallbacks();
         this.clearField();
-        this.isCreating = false;
         this.needSpawn = false;
+        this.lastDropTime = -1000;
         this.removeMode = false;
         this.overTimer = 0;
         this.refreshItemHighlights();
 
         for (const f of snapshot.fruits) {
             const fruit = this.createFruitOnPos(f.x, f.y, f.id);
-            fruit._birth = cc.director.getTotalTime();
+            fruit._birth = this.gameTime();
             this.startFruitPhysics(fruit);
             const body = fruit.getComponent(cc.RigidBody);
             body.linearVelocity = cc.v2(0, 0);
             body.angularVelocity = 0;
+            // 快照中的水果按落稳状态恢复，避免回滚后集体下坠
+            fruit._settled = true;
+            body.gravityScale = 1;
         }
 
         this.score = snapshot.score;
@@ -818,53 +848,32 @@ cc.Class({
         this.updateNextPreview();
     },
 
+    // 洗牌：向上抖动动画。不排序、不重排，仅给刚体一个短暂的向上冲量，
+    // 由物理系统自然完成弹起-回落，保证与碰撞/合成完全兼容
     shuffleFruits() {
-        if (this.shuffling) return;
+        const now = this.gameTime();
+        if (now - this.lastShuffleTime < SHUFFLE_COOLDOWN) return; // 防连点，非次数限制
         const fieldFruits = this.getFieldFruits();
         if (fieldFruits.length === 0) return;
 
-        this.shuffling = true;
+        this.lastShuffleTime = now;
         this.removeMode = false;
         this.refreshItemHighlights();
 
-        const ids = fieldFruits.map((f) => f.getComponent('Fruit').id);
-        for (const f of fieldFruits) {
-            f.off('sameContact');
-            f.destroy();
+        for (const fruit of fieldFruits) {
+            if (fruit._merging) continue;
+            const body = fruit.getComponent(cc.RigidBody);
+            if (!body || body.type !== cc.RigidBodyType.Dynamic) continue;
+            body.linearVelocity = cc.v2(0, SHUFFLE_IMPULSE.up);
+            body.angularVelocity = (Math.random() * 2 - 1) * SHUFFLE_IMPULSE.spin;
+            if (!fruit._settled) {
+                // 仍在下落管理中的水果：重置加速计时，恢复加速度控制
+                fruit._fallTime = 0;
+                fruit._slowTimer = 0;
+                fruit._capped = false;
+                body.gravityScale = FALL_CFG.accel / GRAVITY;
+            }
         }
-
-        // 按尺寸降序、自底向上网格重排，保证初始不重叠，随后由物理自然落定
-        ids.sort((a, b) => b - a);
-        const margin = 10;
-        let rowMaxD = 0;
-        let cursorX = -this.W / 2 + margin;
-        let rowY = this.floorY;
-        let placed = 0;
-
-        const placeNext = () => {
-            if (this.state === STATE.OVER || this.state === STATE.MENU || placed >= ids.length) {
-                this.unschedule(placeNext);
-                this.shuffling = false;
-                return;
-            }
-            const id = ids[placed++];
-            const fruit = this.createOneFruit(id);
-            const d = fruit.width * 0.6;
-            if (cursorX + d > this.W / 2 - margin) {
-                cursorX = -this.W / 2 + margin;
-                rowY += rowMaxD + margin;
-                rowMaxD = 0;
-            }
-            fruit.setPosition(cursorX + d / 2, rowY + d / 2);
-            cursorX += d + margin;
-            rowMaxD = Math.max(rowMaxD, d);
-
-            fruit._birth = cc.director.getTotalTime();
-            this.startFruitPhysics(fruit);
-        };
-        // 注意：不能在 scheduleOnce 回调里用同一函数引用再次 scheduleOnce（调度器会忽略），改用重复调度
-        this.schedule(placeNext, 0.06);
-        placeNext();
     },
 
     // ---------------- 瞄准线 ----------------
@@ -872,7 +881,7 @@ cc.Class({
         const gfx = this.aimGraphics;
         if (!gfx) return;
         gfx.clear();
-        if (!this.aimEnabled || this.state !== STATE.PLAYING || !this.currentFruit || this.isCreating) return;
+        if (!this.aimEnabled || this.state !== STATE.PLAYING || !this.currentFruit) return;
 
         const x = this.currentFruit.x;
         const r = this.currentFruit.width * 0.6 / 2;
@@ -899,10 +908,10 @@ cc.Class({
     },
 
     // ---------------- 每帧检查 ----------------
-    update() {
+    update(dt) {
         if (this.state !== STATE.PLAYING) return;
 
-        const now = cc.director.getTotalTime();
+        const now = this.gameTime();
         let anyAbove = false;
         const halfW = this.W / 2;
         const children = this.node.children;
@@ -921,6 +930,26 @@ cc.Class({
             const body = child.getComponent(cc.RigidBody);
             if (!body || body.type !== cc.RigidBodyType.Dynamic) continue;
             if (child._merging) continue;
+
+            // 下落管理：自由下落阶段按 v = v0 + accel*t 线性加速（经 gravityScale），
+            // 达到 vmax 停止加速；落稳后交还默认重力，不再干预
+            if (!child._settled) {
+                child._fallTime = (child._fallTime || 0) + dt;
+                const v = body.linearVelocity;
+                if (!child._capped && -v.y >= FALL_CFG.vmax) {
+                    child._capped = true;
+                    body.gravityScale = 0;
+                }
+                if (v.x * v.x + v.y * v.y < FALL_CFG.settleSpeed * FALL_CFG.settleSpeed) {
+                    child._slowTimer = (child._slowTimer || 0) + dt;
+                    if (child._slowTimer >= FALL_CFG.settleTime) {
+                        child._settled = true;
+                        body.gravityScale = 1;
+                    }
+                } else {
+                    child._slowTimer = 0;
+                }
+            }
 
             const birth = child._birth || 0;
             if (now - birth < 1.2) continue;
