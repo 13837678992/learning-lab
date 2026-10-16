@@ -31,12 +31,14 @@ const FALL_CFG = {
 const DROP_INTERVAL = 0.3;  // 两次投放的最小时间间隔（秒）
 const SPAWN_DELAY = 0.25;   // 投放后下一个待投水果出现延迟
 const SHUFFLE_CFG = {
-    stagger: 0.03,     // 逐个水果传送的时序间隔（秒）
-    hopMin: 0.8,       // 弹起高度 = 直径 * [hopMin, hopMax]
+    flightMin: 0.55,   // 单个水果抛物线飞行时长下限（秒）
+    flightMax: 0.75,   // 上限
+    delayStep: 0.03,   // 各水果启动时间错开
+    hopMin: 0.8,       // 弹起弧顶 = 水果直径的 0.8~1.5 倍
     hopMax: 1.5,
-    hopVMax: 620,      // 弹起速度上限
     margin: 12,        // 目标位置与边界/彼此的最小间距
-    unlockDelay: 1.4   // 弹跳落定后解除洗牌锁的延迟（秒）
+    unlockDelay: 0.9,  // 全部落位后解除洗牌锁（等待自然落定）
+    attempts: 6        // 布局置换择优的有限尝试次数（防无限循环）
 };
 
 cc.Class({
@@ -99,7 +101,7 @@ cc.Class({
         this.aimEnabled = true;
         this.lastDropTime = -1000;
         this.shuffling = false;
-        this._shuffleTargets = null;
+        this._shuffleFlights = null;
         this.undoStack = [];
         this.overTimer = 0;
         this.lastKnockTime = 0;
@@ -440,7 +442,7 @@ cc.Class({
         this.needSpawn = false;
         this.lastDropTime = -1000;
         this.shuffling = false;
-        this._shuffleTargets = null;
+        this._shuffleFlights = null;
         this.removeMode = false;
         this.refreshItemHighlights();
         this.menuLayer.active = true;
@@ -460,7 +462,7 @@ cc.Class({
         this.needSpawn = false;
         this.lastDropTime = -1000;
         this.shuffling = false;
-        this._shuffleTargets = null;
+        this._shuffleFlights = null;
         this.removeMode = false;
         this.undoStack = [];
         this.overTimer = 0;
@@ -499,8 +501,7 @@ cc.Class({
         if (this.state !== STATE.PLAYING) return;
         this.state = STATE.OVER;
         this.needSpawn = false;
-        this.shuffling = false;
-        this._shuffleTargets = null;
+        this.finishShuffle();
         this.removeMode = false;
         this.unscheduleAllCallbacks();
         this.refreshItemHighlights();
@@ -864,11 +865,14 @@ cc.Class({
         this.updateNextPreview();
     },
 
-    // 洗牌：真实重排 + 明显向上弹跳，三阶段保证物理正确：
-    // 1) 逐个把水果置为 Static 并传送到新目标位置（静态体之间不产生接触，
-    //    避免未移动水果与已落位水果重叠导致意外合成）
-    // 2) 全部落位后统一转回 Dynamic，清空旧速度，施加按直径计算的垂直弹跳
-    // 3) 布局生成时避免同 ID 水果左右/上下相邻，弹跳为纯垂直，落定后不会新合成
+    // 洗牌：安全布局 + 抛物线飞行 + 物理恢复。
+    // 1) 收集有效水果（排除持有/合成中/非动态），随机置换生成目标布局：
+    //    行打包保证互不重叠与容器内，同 ID 左右不相邻，行内均匀展开到全宽；
+    //    有限次置换择优，最大化"真实移动"的水果数量（不为变化牺牲安全）
+    // 2) 全部水果置为 Static（静态体之间无接触，飞行期间不会触发合成），
+    //    由 update 驱动二次贝塞尔抛物线飞行：弹起→空中移动→落到新位置，
+    //    各水果启动时间小幅错开；update 仅在 PLAYING 推进，暂停天然冻结
+    // 3) 全部落位后统一转回 Dynamic、清空旧速度、恢复下落加速管理
     shuffleFruits() {
         if (this.state !== STATE.PLAYING || this.shuffling) return;
         const fruits = this.getFieldFruits().filter((f) => {
@@ -882,14 +886,54 @@ cc.Class({
         this.removeMode = false;
         this.refreshItemHighlights();
 
-        const items = fruits.map((f) => ({ f, id: f.getComponent('Fruit').id, d: f.width * 0.6 }));
-        // 随机置换作为布局基础顺序
-        for (let i = items.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            const tmp = items[i]; items[i] = items[j]; items[j] = tmp;
+        const items = fruits.map((f) => ({ f, id: f.getComponent('Fruit').id, d: f.width * 0.6, x0: f.x, y0: f.y }));
+
+        // 有限次置换，选让最多水果明显移动的一组目标布局
+        let bestTargets = null;
+        let bestMoved = -1;
+        for (let attempt = 0; attempt < SHUFFLE_CFG.attempts; attempt++) {
+            const perm = items.slice();
+            for (let i = perm.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = perm[i]; perm[i] = perm[j]; perm[j] = tmp;
+            }
+            const targets = this.buildShuffleTargets(perm);
+            let moved = 0;
+            for (const t of targets) {
+                const dx = t.x - t.f.x;
+                const dy = t.y - t.f.y;
+                if (Math.sqrt(dx * dx + dy * dy) > Math.max(20, t.d * 0.3)) moved++;
+            }
+            if (moved > bestMoved) { bestMoved = moved; bestTargets = targets; }
+            if (moved === targets.length) break;
         }
-        // 行打包生成互不重叠的目标位置，并避免同 ID 相邻；
-        // 每行完成后在该行内均匀展开到整个容器宽度（带间距校验），避免统一靠左
+
+        // 冻结全部参与水果并生成飞行数据
+        const flights = [];
+        bestTargets.forEach((t, i) => {
+            if (!t.f.isValid) return;
+            const body = t.f.getComponent(cc.RigidBody);
+            body.type = cc.RigidBodyType.Static;
+            body.linearVelocity = cc.v2(0, 0);
+            body.angularVelocity = 0;
+            const hop = t.d * (SHUFFLE_CFG.hopMin + Math.random() * (SHUFFLE_CFG.hopMax - SHUFFLE_CFG.hopMin));
+            flights.push({
+                f: t.f, d: t.d,
+                x0: t.f.x, y0: t.f.y, x1: t.x, y1: t.y,
+                ax: (t.f.x + t.x) / 2,
+                // 二次贝塞尔曲线顶点约为控制点高度的一半，故控制点取 2 倍弹起高度
+                ay: Math.max(t.f.y, t.y) + hop * 2,
+                t: -i * SHUFFLE_CFG.delayStep,
+                dur: SHUFFLE_CFG.flightMin + Math.random() * (SHUFFLE_CFG.flightMax - SHUFFLE_CFG.flightMin),
+                done: false
+            });
+        });
+        this._shuffleFlights = flights;
+    },
+
+    // 行打包 + 均匀展开生成目标位置（纯计算，可多次尝试）
+    buildShuffleTargets(order) {
+        const margin = SHUFFLE_CFG.margin;
         const distributeRow = (row) => {
             const k = row.length;
             if (k === 0) return;
@@ -901,9 +945,8 @@ cc.Class({
             }
             row.forEach((t, j) => { t.x = -this.W / 2 + margin + s * (j + 0.5); });
         };
-        const margin = SHUFFLE_CFG.margin;
         const targets = [];
-        const pool = items.slice();
+        const pool = order.slice();
         let cursorX = -this.W / 2 + margin;
         let rowY = this.floorY;
         let rowMaxD = 0;
@@ -911,7 +954,7 @@ cc.Class({
         let curRow = [];
         while (pool.length > 0) {
             const slotX = cursorX;
-            // 找出该槽位左右与正下方可能接触的水果 id
+            // 避免与左侧及正下方水果同 ID（接触可能性范围内）
             const forbidden = {};
             const left = curRow[curRow.length - 1];
             if (left) forbidden[left.id] = true;
@@ -936,77 +979,69 @@ cc.Class({
             rowMaxD = Math.max(rowMaxD, it.d);
         }
         distributeRow(curRow);
-
-        this._shuffleTargets = targets;
-        this._shuffleIdx = 0;
-        this._shuffleFrozen = false;
-        this.schedule(this.shuffleStep, SHUFFLE_CFG.stagger);
+        return targets;
     },
 
-    shuffleStep() {
-        if (this.state === STATE.OVER || this.state === STATE.MENU) {
-            this.finishShuffle();
-            return;
-        }
-        if (this.state !== STATE.PLAYING) return; // 暂停中：本拍跳过，恢复后继续
-        const targets = this._shuffleTargets;
-        // 阶段0：先把全部水果一次性置为静态。
-        // 若逐个置静态，已传送的静态水果会与尚未移动的动态水果重叠触发接触合成
-        if (!this._shuffleFrozen) {
-            this._shuffleFrozen = true;
-            for (const tt of targets) {
-                if (!tt.f.isValid) continue;
-                const b = tt.f.getComponent(cc.RigidBody);
-                b.type = cc.RigidBodyType.Static;
-                b.linearVelocity = cc.v2(0, 0);
-                b.angularVelocity = 0;
+    // update 驱动的飞行推进：暂停（非 PLAYING）时 update 不执行，飞行自然冻结
+    stepShuffleFlight(dt) {
+        const flights = this._shuffleFlights;
+        if (!flights) return;
+        let allDone = true;
+        for (const fl of flights) {
+            if (fl.done) continue;
+            fl.t += dt;
+            if (fl.t < 0) { allDone = false; continue; }
+            const p = Math.min(fl.t / fl.dur, 1);
+            const q = 1 - p;
+            if (fl.f.isValid) {
+                fl.f.setPosition(
+                    q * q * fl.x0 + 2 * q * p * fl.ax + p * p * fl.x1,
+                    q * q * fl.y0 + 2 * q * p * fl.ay + p * p * fl.y1
+                );
+            }
+            if (p >= 1) {
+                fl.done = true;
+                if (fl.f.isValid) fl.f.setPosition(fl.x1, fl.y1);
+            } else {
+                allDone = false;
             }
         }
-        const t = targets && targets[this._shuffleIdx++];
-        if (!t) {
-            this.unschedule(this.shuffleStep);
-            // 阶段2：全部转回动态并垂直弹起（弹跳高度为直径的 0.8~1.5 倍）
-            for (const tt of targets || []) {
-                if (!tt.f.isValid) continue;
-                const body = tt.f.getComponent(cc.RigidBody);
+        if (allDone) {
+            this._shuffleFlights = null;
+            // 恢复物理：全部转回动态、清空旧速度、重新进入下落加速管理
+            for (const fl of flights) {
+                if (!fl.f.isValid) continue;
+                const body = fl.f.getComponent(cc.RigidBody);
                 body.type = cc.RigidBodyType.Dynamic;
+                body.linearVelocity = cc.v2(0, 0);
                 body.angularVelocity = 0;
-                const hop = tt.d * (SHUFFLE_CFG.hopMin + Math.random() * (SHUFFLE_CFG.hopMax - SHUFFLE_CFG.hopMin));
-                const up = Math.min(Math.sqrt(2 * GRAVITY * hop), SHUFFLE_CFG.hopVMax);
-                body.linearVelocity = cc.v2(0, up);
-                tt.f._settled = false;
-                tt.f._fallTime = 0;
-                tt.f._slowTimer = 0;
-                tt.f._capped = false;
+                fl.f._settled = false;
+                fl.f._fallTime = 0;
+                fl.f._slowTimer = 0;
+                fl.f._capped = false;
                 body.gravityScale = FALL_CFG.accel / GRAVITY;
             }
-            this._shuffleTargets = null;
             this.scheduleOnce(this.finishShuffle, SHUFFLE_CFG.unlockDelay);
-            return;
         }
-        if (!t.f.isValid) return;
-        // 阶段1：传送（全体已是静态，静态体之间无接触事件）
-        t.f.setPosition(t.x, t.y);
     },
 
     finishShuffle() {
-        this.unschedule(this.shuffleStep);
         this.unschedule(this.finishShuffle);
-        // 兜底：把仍处于 Static 的洗牌水果恢复为动态
-        const targets = this._shuffleTargets;
-        if (targets) {
-            for (const tt of targets) {
-                if (!tt.f.isValid) continue;
-                const body = tt.f.getComponent(cc.RigidBody);
+        // 兜底：中止场景（游戏结束等）下把仍为 Static 的飞行水果恢复为动态
+        const flights = this._shuffleFlights;
+        if (flights) {
+            for (const fl of flights) {
+                if (!fl.f.isValid) continue;
+                const body = fl.f.getComponent(cc.RigidBody);
                 if (body.type === cc.RigidBodyType.Static) {
                     body.type = cc.RigidBodyType.Dynamic;
                     body.linearVelocity = cc.v2(0, 0);
                     body.gravityScale = 1;
-                    tt.f._settled = false;
+                    fl.f._settled = false;
                 }
             }
         }
-        this._shuffleTargets = null;
+        this._shuffleFlights = null;
         this.shuffling = false;
     },
 
@@ -1044,6 +1079,8 @@ cc.Class({
     // ---------------- 每帧检查 ----------------
     update(dt) {
         if (this.state !== STATE.PLAYING) return;
+
+        if (this._shuffleFlights) this.stepShuffleFlight(dt);
 
         const now = this.gameTime();
         let anyAbove = false;
