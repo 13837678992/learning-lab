@@ -106,7 +106,8 @@ cc.Class({
         this.needSpawn = false;
         this.fruitCount = 0;
         this.score = 0;
-        this.bestScore = this.saveData.bestScore || 0;
+        const savedBest = Number(this.saveData.bestScore);
+        this.bestScore = (isFinite(savedBest) && savedBest > 0) ? Math.floor(savedBest) : 0;
         this.soundOn = this.saveData.soundOn !== false;
 
         this.removeMode = false;
@@ -207,6 +208,27 @@ cc.Class({
                 soundOn: this.soundOn
             }));
         } catch (e) { /* 存储不可用时忽略 */ }
+    },
+
+    // 最高分统一入口：每次得分变化、重新开始、游戏结束都经由此方法
+    // 比较（严格大于才更新）、持久化并刷新 UI，避免多处实现不一致
+    updateBest() {
+        const s = Number(this.score);
+        const cur = isFinite(s) && s > 0 ? Math.floor(s) : 0;
+        if (cur > this.bestScore) {
+            this.bestScore = cur;
+            this.persistSave();
+        }
+        this.refreshBestUI();
+    },
+
+    refreshBestUI() {
+        if (this.bestLabel) {
+            this.bestLabel.getComponent(cc.Label).string = '最高分 ' + this.bestScore;
+        }
+        if (this.menuBestLabel) {
+            this.menuBestLabel.getComponent(cc.Label).string = '最高分 ' + this.bestScore;
+        }
     },
 
     // ---------------- 物理 ----------------
@@ -496,6 +518,8 @@ cc.Class({
     },
 
     startGame() {
+        // 重置本局前，先确保已达到的最高分已比较并保存（覆盖"超过最高分后立即重新开始"路径）
+        this.updateBest();
         this.unscheduleAllCallbacks();
         this.clearField();
         this.state = STATE.PLAYING;
@@ -555,11 +579,7 @@ cc.Class({
         this._heldSpawnAt = 0;
         this.activeTouchId = null;
         this.refreshItemHighlights();
-        if (this.score > this.bestScore) {
-            this.bestScore = this.score;
-        }
-        this.persistSave();
-        this.bestLabel.getComponent(cc.Label).string = '最高分 ' + this.bestScore;
+        this.updateBest();
         this.overScoreLabel.getComponent(cc.Label).string = '得分 ' + this.score;
         this.overBestLabel.getComponent(cc.Label).string = '最高分 ' + this.bestScore;
         this.overLayer.active = true;
@@ -1028,6 +1048,7 @@ cc.Class({
     addScore(fruitId) {
         this.score += fruitId * 2;
         this.scoreLabel.string = this.score;
+        this.updateBest();
     },
 
     // ---------------- 道具（全部免费无限次） ----------------
