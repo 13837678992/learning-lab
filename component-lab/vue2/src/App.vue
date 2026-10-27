@@ -16,6 +16,9 @@
         <p class="counter">点击次数：{{ count }}</p>
       </section>
       <section class="demo-section crud-section">
+        <ConfigTableDemo />
+      </section>
+      <section class="demo-section crud-section">
         <CrudDemo />
       </section>
       <section class="demo-section crud-section">
@@ -27,12 +30,13 @@
 
 <script>
 import BaseButton from './components/BaseButton.vue'
+import ConfigTableDemo from './demo/ConfigTableDemo.vue'
 import CrudDemo from './demo/CrudDemo.vue'
 import FormDemo from './demo/FormDemo.vue'
 
 export default {
   name: 'App',
-  components: { BaseButton, CrudDemo, FormDemo },
+  components: { BaseButton, ConfigTableDemo, CrudDemo, FormDemo },
   data() {
     return { count: 0 }
   },
