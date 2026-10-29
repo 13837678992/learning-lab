@@ -14,7 +14,7 @@
           <el-col
             v-for="field in renderedFields"
             :key="field.prop || field.label"
-            :span="fieldColumnSpan"
+            :span="field.span || fieldColumnSpan"
           >
             <el-form-item :label="field.label" :required="!!field.required">
               <!-- 自定义插槽控件 -->
@@ -30,7 +30,7 @@
                 v-else-if="!field.type || field.type === 'input'"
                 :value="form[field.prop]"
                 :placeholder="field.placeholder || '请输入' + (field.label || '')"
-                :disabled="field.disabled"
+                :disabled="field.disabled || isCustomRangeChecked(field)"
                 :maxlength="field.maxlength"
                 :clearable="field.clearable !== false"
                 @input="val => updateField(field.prop, val, field)"
@@ -41,7 +41,7 @@
                 v-else-if="field.type === 'unit-input'"
                 :value="form[field.prop]"
                 :placeholder="field.placeholder || '请输入'"
-                :disabled="field.disabled"
+                :disabled="field.disabled || isCustomRangeChecked(field)"
                 :maxlength="field.maxlength"
                 :clearable="field.clearable !== false"
                 @input="val => updateNumberField(field.prop, val, field)"
@@ -82,7 +82,7 @@
                   :value="form[field.startProp]"
                   :filterable="field.filterable !== false"
                   :clearable="field.clearable !== false"
-                  :disabled="field.disabled"
+                  :disabled="field.disabled || isCustomRangeChecked(field)"
                   :placeholder="field.placeholder || '请选择'"
                   @input="val => updateField(field.startProp, val, field)"
                 >
@@ -97,7 +97,7 @@
                 <el-input
                   :value="form[field.endProp]"
                   placeholder="请输入"
-                  :disabled="field.disabled"
+                  :disabled="field.disabled || isCustomRangeChecked(field)"
                   :clearable="field.clearable !== false"
                   @input="val => updateField(field.endProp, val, field)"
                 />
@@ -110,7 +110,7 @@
                 :value="form[field.prop]"
                 :multiple="!!field.multiple"
                 :clearable="field.clearable !== false"
-                :disabled="field.disabled"
+                :disabled="field.disabled || isCustomRangeChecked(field)"
                 :placeholder="field.placeholder || '请选择' + (field.label || '')"
                 :popper-append-to-body="false"
                 @input="val => onTreeSelectInput(field, val)"
@@ -154,7 +154,7 @@
                 :format="field.format || 'yyyy-MM-dd'"
                 :value-format="field.valueFormat || defaultValueFormat(field.dateType)"
                 :placeholder="field.placeholder || '请选择' + (field.label || '')"
-                :disabled="field.disabled"
+                :disabled="field.disabled || isCustomRangeChecked(field)"
                 :clearable="field.clearable !== false"
                 :picker-options="buildPickerOptions(field)"
                 @input="val => updateField(field.prop, val || '', field)"
@@ -181,7 +181,7 @@
                 <el-input
                   :value="form[field.startProp]"
                   placeholder="请输入"
-                  :disabled="field.disabled"
+                  :disabled="field.disabled || isCustomRangeChecked(field)"
                   :clearable="field.clearable !== false"
                   @input="val => updateRangeNumberField(field, 'startProp', val)"
                   @blur="clampRangeNumberField(field, 'startProp')"
@@ -190,7 +190,7 @@
                 <el-input
                   :value="form[field.endProp]"
                   placeholder="请输入"
-                  :disabled="field.disabled"
+                  :disabled="field.disabled || isCustomRangeChecked(field)"
                   :clearable="field.clearable !== false"
                   @input="val => updateRangeNumberField(field, 'endProp', val)"
                   @blur="clampRangeNumberField(field, 'endProp')"
@@ -202,7 +202,7 @@
                   v-if="field.extraOptions"
                   :value="form[field.extraProp]"
                   class="config-table__extra-select"
-                  :disabled="field.disabled"
+                  :disabled="field.disabled || isCustomRangeChecked(field)"
                   @input="val => updateField(field.extraProp, val, field)"
                 >
                   <el-option
@@ -238,7 +238,7 @@
                   end-placeholder="结束日期"
                   :clearable="false"
                   :disabled="!isCustomRangeChecked(field)"
-                  @input="val => updateCustomRange(field, val)"
+                  @input="val => onCustomRangeDateChange(field, val)"
                 />
               </div>
 
@@ -345,8 +345,9 @@
         @select-all="handleSelectAll"
         @row-click="handleRowClick"
         @row-dblclick="(row, column, event) => $emit('row-dblclick', row, column, event)"
-        @current-change="row => $emit('current-change', row)"
+        @current-change="(row, oldRow) => $emit('current-change', row, oldRow)"
         @sort-change="handleSortChange"
+        @filter-change="filter => $emit('filter-change', filter)"
       >
         <config-table-column
           v-for="(col, i) in columns || []"
@@ -354,7 +355,7 @@
           :column="col"
           :cell-slots="$scopedSlots"
           :selectable="isRowSelectable"
-          :reserve-selection="reserveSelection"
+          :reserve-selection="effectiveReserveSelection"
           :index-method="indexMethod"
         />
         <template slot="empty">
@@ -511,6 +512,11 @@ export default {
     hasSelectionColumn() {
       return (this.columns || []).some(c => c.type === 'selection')
     },
+    // 旧组件仅在 reserveSelection && rowKey 同时具备时才启用保留；缺少 rowKey 时
+    // Element 会在数据更新时直接抛错，这里降级为不保留（与旧组件行为一致）
+    effectiveReserveSelection() {
+      return this.reserveSelection && !!this.rowKey
+    },
     computedHeight() {
       if (this.height === 'auto') return undefined
       if (this.height != null) return this.height
@@ -519,8 +525,7 @@ export default {
     // 面板仅在开启跨页保留 + rowKey 且有选中项时展示（与旧组件一致）
     showSelectedPanel() {
       return (
-        this.reserveSelection &&
-        !!this.rowKey &&
+        this.effectiveReserveSelection &&
         this.showSelectionPanel &&
         this.hasSelectionColumn &&
         this.selection.length > 0
@@ -555,7 +560,10 @@ export default {
       deep: true,
     },
     data() {
-      this.$nextTick(() => this.updateMeasuredHeight())
+      this.$nextTick(() => {
+        this.updateMeasuredHeight()
+        this.syncSelectionRefs()
+      })
     },
   },
   created() {
@@ -587,7 +595,17 @@ export default {
     },
     applyFieldDefaults() {
       this.visibleFields.forEach(field => {
-        if (field.slot) return
+        if (field.slot) {
+          // 插槽字段不托管控件，但仍初始化 defaultValue（通用键）
+          if (field.prop !== undefined && this.form[field.prop] === undefined) {
+            this.$set(
+              this.form,
+              field.prop,
+              field.defaultValue !== undefined ? field.defaultValue : field.multiple ? [] : ''
+            )
+          }
+          return
+        }
         if (field.customRange && this.customRangeChecked[this.fieldKey(field)] === undefined) {
           this.$set(this.customRangeChecked, this.fieldKey(field), false)
         }
@@ -669,11 +687,14 @@ export default {
     buildPickerOptions(field) {
       const options = { ...(field.pickerOptions || {}) }
       const originDisabled = options.disabledDate
+      const originOnPick = options.onPick
       const maxSpan = field.maxSpanDays
       const noFuture = field.disableFuture
       const key = this.fieldKey(field)
-      options.onPick = ({ minDate, maxDate }) => {
+      options.onPick = payload => {
+        const { minDate, maxDate } = payload
         this.$set(this.rangePickStart, key, maxDate ? '' : minDate)
+        if (originOnPick) originOnPick(payload)
       }
       options.disabledDate = time => {
         if (noFuture) {
@@ -717,6 +738,11 @@ export default {
       const cr = field.customRange
       this.$set(this.form, cr.startProp, (val && val[0]) || '')
       this.$set(this.form, cr.endProp, (val && val[1]) || '')
+    },
+    onCustomRangeDateChange(field, val) {
+      // 用户选择自定义区间日期：写入表单并派发 search-change（与 updateRangeField 一致）
+      this.updateCustomRange(field, val)
+      this.$emit('search-change', val, field, { ...this.form })
     },
     selectAllOptions(field) {
       const values = (field.options || [])
@@ -809,26 +835,42 @@ export default {
       return (this.pageNum - 1) * this.pageSize + index + 1
     },
     handleSelectionChange(selection) {
+      // singleSelection 收敛点：Element 在 select 事件之后才会派发用修正前
+      // 快照计算的 selection-change（行点击路径甚至不派发 select），因此
+      // 收敛必须放在这个所有选中变化都必经的汇聚点执行。
+      if (this._singleFixing) return
+      if (this.singleSelection && selection.length > 1 && this.$refs.table) {
+        const keep =
+          this._pendingSingleRow && selection.includes(this._pendingSingleRow)
+            ? this._pendingSingleRow
+            : selection[0]
+        this._pendingSingleRow = null
+        this._singleFixing = true
+        selection
+          .filter(r => r !== keep)
+          .forEach(r => this.$refs.table.toggleRowSelection(r, false))
+        this._singleFixing = false
+        this.selection = [keep]
+        this.$emit('selection-change', [keep])
+        return
+      }
       this.selection = selection
+      this._pendingSingleRow = null
       this.$emit('selection-change', selection)
     },
     handleSelect(selection, row) {
+      // 收敛过程中由修正触发的合成 select 不对外派发
+      if (this._singleFixing) return
       if (this.singleSelection && row && selection.includes(row)) {
-        selection
-          .filter(r => r !== row)
-          .forEach(r => this.$refs.table.toggleRowSelection(r, false))
+        this._pendingSingleRow = row
       }
-      this.$emit('select', this.singleSelection ? [row] : selection, row)
+      // 单选模式只上报收敛后的结果（收敛在 handleSelectionChange 执行）
+      this.$emit('select', this.singleSelection ? (selection.includes(row) ? [row] : []) : selection, row)
     },
     handleSelectAll(selection) {
-      if (this.singleSelection && selection.length > 1) {
-        selection
-          .slice(1)
-          .forEach(r => this.$refs.table.toggleRowSelection(r, false))
-        this.$emit('select-all', [selection[0]])
-        return
-      }
-      this.$emit('select-all', selection)
+      // selection-change 先于 select-all 派发，singleSelection 的收敛已在
+      // handleSelectionChange 完成，这里上报收敛后的镜像状态
+      this.$emit('select-all', this.selection)
     },
     handleRowClick(row, column, event) {
       if (
@@ -839,12 +881,33 @@ export default {
         const isSelected = this.selection.some(
           r => this.rowIdentity(r) === this.rowIdentity(row)
         )
+        if (this.singleSelection && !isSelected) this._pendingSingleRow = row
         this.$refs.table.toggleRowSelection(row, !isSelected)
       }
       this.$emit('row-click', row, column, event)
     },
     handleSortChange({ column, prop, order }) {
       this.$emit('sort-change', { column, prop, order })
+    },
+    // reserve-selection 下数据刷新时 Element 会按 rowKey 把选中行静默换成
+    // data 中的新对象引用（不派发事件），这里把镜像同步到新引用，
+    // 否则 getSelectedRows()/已选面板会拿到过期对象（面板移除会失效）
+    syncSelectionRefs() {
+      if (!this.effectiveReserveSelection || !this.selection.length) return
+      const map = new Map(this.data.map(r => [String(r[this.rowKey]), r]))
+      let changed = false
+      const next = this.selection.map(r => {
+        const current = map.get(String(r[this.rowKey]))
+        if (current && current !== r) {
+          changed = true
+          return current
+        }
+        return r
+      })
+      if (changed) {
+        this.selection = next
+        this.$emit('selection-change', next)
+      }
     },
     applyDefaultSelection(rows) {
       const table = this.$refs.table

@@ -102,10 +102,10 @@ export default {
 | 属性 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
 | `rowKey` | `String` | `''` | 行唯一键字段名；`reserve-selection` 与已选面板必需 |
-| `reserveSelection` | `Boolean` | `false` | 跨页/数据刷新保留选中（Element 原生 `reserve-selection`，依赖 `rowKey`） |
+| `reserveSelection` | `Boolean` | `false` | 跨页/数据刷新保留选中（Element 原生 `reserve-selection`，依赖 `rowKey`；未提供 `rowKey` 时自动降级为不保留，避免 Element 数据更新时抛错） |
 | `selectable` | `Function` | `null` | **额外**可选性条件 `(row, index) => boolean`，与 `_disabled` 规则取交集；只影响用户勾选路径 |
 | `rowClickSelect` | `Boolean` | `true` | 点击行切换勾选（存在选择列时生效；遵守 `_disabled` 规则） |
-| `singleSelection` | `Boolean` | `false` | 多选列中限制只保留一个选中项 |
+| `singleSelection` | `Boolean` | `false` | 多选列中限制只保留一个选中项（复选框、行点击、表头全选三条路径统一收敛，`select`/`select-all` 上报收敛后结果） |
 | `defaultSelection` | `Array` | `[]` | 默认选中行对象数组（程序化回显路径，**可以**包含 `_disabled` 行）；变化时整体替换当前选中 |
 
 #### 已选面板（跨页选中辅助）
@@ -153,6 +153,7 @@ export default {
 | `hidden` | `Boolean` | `false` | 隐藏该条件 |
 | `defaultValue` | 任意 | — | 默认值；范围类字段传 `[start, end]` |
 | `required` | `Boolean` | `false` | 仅控制星号展示（不做校验拦截） |
+| `span` | `Number` | — | 该字段单独占用栅格数（24 栅格制，同 `el-col` 的 `span`），缺省按 `searchColumns` 均分；对应旧 `formItemCol`（旧值单位不可考，新值按 Element 栅格语义） |
 | `placeholder` / `disabled` / `maxlength` / `clearable` | — | clearable 默认 `true` | 透传 Element 控件 |
 | `resetProp` | `String` | — | 本字段有值时自动清空的目标字段 |
 | `slot` | `String` | — | 使用具名插槽渲染整个控件，作用域 `{ field, form }` |
@@ -170,7 +171,7 @@ export default {
 | `daterange` | `startProp`、`endProp`、`dateType`(range/datetimerange/monthrange)、`format`、`valueFormat`、`disableFuture`、`maxSpanDays`、`pickerOptions` | 日期范围，值拆分写入 `startProp/endProp` |
 | `double-input` | `startProp`、`endProp`、`precision`(默认 2)、`allowNegative`、`unit`、`startLimit:{min,max}`、`endLimit:{min,max}`、`extraProp`、`extraOptions`、`extraDefaultValue` | 数字区间 + 单位 + 附带下拉；输入实时清洗（仅数字、单个小数点、限小数位），失焦钳制上下限 |
 | `unit-input` | `unit`、`precision`(默认 0) | 数字输入 + 后缀单位 |
-| 任意 + `customRange` | `customRange: {startProp,endProp,dateType,format,valueFormat}` | 控件后附“自定义区间”复选框：勾选后主控件禁用、日期可用，值写入 `customRange.startProp/endProp`；取消勾选清空日期值 |
+| 任意 + `customRange` | `customRange: {startProp,endProp,dateType,format,valueFormat}` | 控件后附“自定义区间”复选框：勾选后主控件禁用（全部控件类型）、日期可用，值写入 `customRange.startProp/endProp`，日期变化派发 `search-change`；取消勾选清空日期值 |
 
 #### 2.1.2 columns 列配置
 
@@ -181,7 +182,8 @@ export default {
 | `width` / `minWidth` / `align` / `headerAlign` / `fixed` | — | 透传 `el-table-column` |
 | `sortable` | `Boolean` | `true` 时编译为 `'custom'`（服务端排序），排序变化通过 `sort-change` 事件交给调用方 |
 | `formatter` | `Function` | `(row, column, cellValue, index) => string` |
-| `showOverflowTooltip` / `className` / `labelClassName` / `sortBy` / `resizable` / `filters` / `filterMultiple` | — | 透传 |
+| `filters` / `filterMethod` / `filterMultiple` | — | 透传 Element 原生表头筛选；筛选变化通过 `filter-change` 事件交给调用方 |
+| `showOverflowTooltip` / `className` / `labelClassName` / `sortBy` / `resizable` | — | 透传 |
 | `children` | `Array` | 子列数组 → 多级表头分组 |
 | `slot` | `String` | 单元格具名插槽，作用域 `{ row, index, column }` |
 
@@ -199,6 +201,7 @@ export default {
 | `row-click` / `row-dblclick` | 行单击/双击（**不受 `_disabled` 影响**） | `(row, column, event)` |
 | `current-change` | 高亮行变化（`highlightCurrentRow`） | `(currentRow, oldCurrentRow)` |
 | `sort-change` | 排序变化（custom 模式） | `({ column, prop, order })` |
+| `filter-change` | 表头筛选变化 | `(filters)`：`{ [columnKey]: values }`，与 Element 原生一致 |
 | `filter-checkbox-change` | 按钮区附加复选框变化 | `(checked)` |
 
 ### 2.3 方法（通过 `ref` 调用）
@@ -247,7 +250,7 @@ export default {
 - **仅影响选择列勾选**，不影响：整行样式、行点击/双击、行内按钮、编辑/删除等业务操作、`row-click` 等事件。
 - **程序化路径不受限**：`defaultSelection` 回显与 `setSelection()` 可以选中 `_disabled` 行（复选框呈“已勾选且禁用”态）。这是 Element UI `toggleRowSelection` 的原生行为，用于支持“已选但当前不可再操作”的锁定场景。
 - 动态修改 `_disabled` 后选择列自动刷新；**已被选中的行后来被设为 `_disabled = true` 时，已有选中状态保留**（与程序化选中一致），如需剔除请显式 `setSelection`/`clearSelection`。
-- 数据刷新/翻页时由 Element 原生 `reserve-selection`（按 `rowKey`）决定保留或失效，组件不额外清空、也不会保留 `rowKey` 已不存在的选中歧义之外的状态。
+- 数据刷新/翻页时由 Element 原生 `reserve-selection`（按 `rowKey`）决定保留或失效；数据整批替换后组件会把选中镜像同步为 `data` 中的新行对象引用（并重发一次 `selection-change`），保证 `getSelectedRows()`/已选面板始终持有当前数据对象。
 
 ```js
 const tableData = [
@@ -305,7 +308,7 @@ export default {
 
 - **多级表头**：列配置 `children` 数组递归渲染。
 - **排序**：`sortable: true` 为服务端排序（`'custom'`），组件不排序，监听 `sort-change` 后重新 `search`。
-- **筛选**：`filters/filterMultiple` 透传 Element 原生表头筛选。
+- **筛选**：`filters/filterMethod/filterMultiple` 透传 Element 原生表头筛选；筛选变化通过 `filter-change` 事件交给调用方。
 - **加载/空态**：`loading` 控制遮罩；空数据默认 Element 样式，可用 `empty` 插槽替换。
 - **序号列**：`type: 'index'` 自动按分页连续编号（`(pageNum-1)*pageSize + i + 1`）。
 - **异常与边界**：`data/columns/searchFields` 缺省安全；行缺 `rowKey` 字段时按对象引用比较；`total` 缺省按 0。
@@ -337,7 +340,7 @@ export default {
 
 | 旧 prop | 新 prop | 差异说明 |
 |---|---|---|
-| `conditions` | `searchFields` | 结构重命名：`element_code→prop`、`element_name→label`、`component+type→type`、`visable→hidden`（语义取反）、`before/after/third→startProp/endProp/extraProp`、`data_dict/selectList→options`（固定 `{label,value,disabled}`，alias 机制移除）、`isShowCustomize+customize→customRange`、`isShowInput→type:'select-input'`、`options.pickerMaxDays→maxSpanDays` |
+| `conditions` | `searchFields` | 结构重命名：`element_code→prop`、`element_name→label`、`component+type→type`、`visable→hidden`（语义取反）、`before/after/third→startProp/endProp/extraProp`、`data_dict/selectList→options`（固定 `{label,value,disabled}`，alias 机制移除）、`isShowCustomize+customize→customRange`、`isShowInput→type:'select-input'`、`options.pickerMaxDays→maxSpanDays`、`formItemCol→span` |
 | `searchCols` | `searchColumns` | 同 |
 | `showMore` | `showMoreButton` | 同 |
 | `hiddenSearch` / `hiddenReset` | `showSearchButton` / `showResetButton` | 语义取反 |
@@ -381,7 +384,8 @@ export default {
 | `sendselected` | — | 与 `on-select-change` 重复（deep watch），由 `selection-change` 覆盖 |
 | `changeCurrent` / `changePageSize` | — | 分页变化统一并入 `search` 载荷 |
 | `on-check-box-chane`（拼写错误） | `filter-checkbox-change` | 修正拼写 |
-| （HDatagrid 内部）`on-row-dblclick` / `on-current-change` | `row-dblclick` / `current-change` | 保留，Element 命名 |
+| （HDatagrid 内部）`on-row-dblclick` / `on-current-change` | `row-dblclick` / `current-change` | 保留，Element 命名；`current-change` 参数为 `(currentRow, oldCurrentRow)` |
+| （新增，Element 原生）| `filter-change` | 表头筛选变化，`(filters)` |
 
 ### 6.4 方法映射
 
@@ -402,9 +406,13 @@ export default {
 3. 字典接口自动加载（旧 `$api.comControllerParams`）移除，选项数据一律由调用方以 `options/treeData` 注入。
 4. 旧版重置依赖组件销毁重建（`isRefash`）与 `$forceUpdate`，新版为纯状态重置；行为一致但不再触发自控件的重新挂载。
 5. 旧版空数据图片（`@/assets/404@2x.png`，资源在本项目不存在）未迁移，使用 Element 默认空态或 `empty` 插槽。
-6. `rowKey` 重复值、行对象引用替换等场景遵循 Element 原生 `reserve-selection` 语义（按 key 匹配保留）。
+6. `rowKey` 重复值场景遵循 Element 原生 `reserve-selection` 语义（按 key 匹配）；行对象引用被整批替换时，组件会把选中镜像同步到新引用（见 §3.1）。
+7. `reserveSelection` 未提供 `rowKey` 时自动降级为不保留（与旧组件“缺 `rowKey` 则不启用保留”的判断一致），避免 Element 在数据更新时抛 `row-key is required`。
+8. 旧版 `conditions` 变化在自动查询前会重置表单（`autoLoad + conditionsFlag` 组合）；新组件 `searchOnFieldsChange` 不重置既有查询值，仅按配置触发 `search`（如需重置请调用 `resetSearch`）。
 
-## 7. 修复的旧版缺陷（有源码依据）
+## 7. 修复的缺陷
+
+### 7.1 旧版缺陷（重构时修复，有源码依据）
 
 | 缺陷 | 位置 | 处理 |
 |---|---|---|
@@ -417,6 +425,23 @@ export default {
 | 查询把 `pageNum/pageSize` 写死进 `searchForm` 并随重置残留 | kconfigtable `validSeachForm` | `search` 载荷改为合并副本 |
 | 大量 `console.log` 调试输出 | 多个文件 | 移除 |
 
+### 7.2 二次审查发现并修复的问题（本轮增量）
+
+均有 Element UI 2.15.14 源码核对 + Playwright 浏览器实测双重依据：
+
+| 问题 | 现象与根因 | 修复 |
+|---|---|---|
+| `singleSelection` 复选框路径失效 | Element 在 `select` 事件之后仍用**修正前快照**派发 `selection-change`，覆盖组件内收敛结果（store 已收敛为 `[6]`，组件镜像与末次事件却是 `[1,6]`） | 收敛逻辑移至 `selection-change` 处理器（唯一汇聚点），修正期间抑制合成 `select`，事件只上报收敛后结果 |
+| `singleSelection` 行点击路径完全绕过 | `toggleRowSelection` 不触发 `select`，原收敛逻辑不执行，可同时选中多行（`[6,8]`） | 同上；行点击记录 `_pendingSingleRow` 供收敛时保留 |
+| 整批替换数据后选中镜像持有过期引用 | Element `updateSelectionByRowKey` 按 rowKey 静默把选中行换成 `data` 新对象（不派发事件），`getSelectedRows()`/面板“移除”拿旧引用失效 | 新增 `syncSelectionRefs()`：`data` 变化后按 `rowKey` 同步镜像并重发 `selection-change` |
+| `reserveSelection` 未配 `rowKey` 直接抛错 | Element `setData` 时 `assertRowKey()` 抛 `prop row-key is required`（旧组件缺 `rowKey` 时静默不启用保留） | 新增 `effectiveReserveSelection` 计算属性，缺 `rowKey` 时降级为不保留 |
+| `filters` 透传半成品 | 列配置支持 `filters` 但未透传 `filterMethod`、组件也未转发 `filter-change` 事件 | `TableColumn.js` 补 `filterMethod`；模板转发 `filter-change` |
+| `current-change` 丢失第二参数 | 模板只转发 `row`，README 声明 `(currentRow, oldCurrentRow)` | 改为 `(row, oldRow) => $emit('current-change', row, oldRow)` |
+| slot 字段跳过 `defaultValue` | `applyFieldDefaults` 对 `field.slot` 直接 return，README 将 `defaultValue` 列为通用键；旧组件对插槽字段同样应用默认值 | slot 字段也写入 `prop` 的默认值 |
+| `pickerOptions.onPick` 被无条件覆盖 | `buildPickerOptions` 直接改写用户传入的回调 | 保留并链式调用用户 `onPick` |
+| 自定义区间日期变化不派发 `search-change` | README 声明“任一查询字段值变化”触发，日期输入路径缺失 | 新增 `onCustomRangeDateChange` 派发事件 |
+| customRange 主控件禁用不完整 | README 声明“任意字段”勾选后主控件禁用，实际仅 `select`/`daterange`/`select-input` 生效 | input/unit-input/tree/date/double-input 一并遵守 |
+
 ## 8. 测试与验证
 
 ### 8.1 验证环境与方式
@@ -424,12 +449,12 @@ export default {
 | 项 | 说明 |
 |---|---|
 | 运行环境 | Vue 2.7.16 + element-ui 2.15.14 + Vite 5（`npm run dev`，端口 3100） |
-| 验证方式 | **真实浏览器运行验证**：Playwright 驱动 headless Chromium 打开 `src/demo/ConfigTableDemo.vue` 演示页，逐项操作 UI 并断言 DOM 状态与事件日志。项目无测试框架，未为此新增依赖，验证脚本置于仓库外（`/tmp/pwtest/verify-full.js`，本机可重放） |
+| 验证方式 | **真实浏览器运行验证**：Playwright 驱动 headless Chromium 打开 `src/demo/ConfigTableDemo.vue` 演示页及审查期间临时搭建的验证页，逐项操作 UI 并断言 DOM 状态、组件镜像、`el-table` store 一致性与事件日志。项目无测试框架，未为此新增依赖；验证脚本置于仓库外（本机可重放），临时验证页验证后未保留 |
 | 虚拟数据 | 25 条：`_disabled` 分别为 `true`（id 2/7）、`false`（id 3）、未设置（其余）；`locked`（id 4/9，验证面板锁定）；`canDelete`（id 5/10/15… 为 `false`，验证按钮权限独立） |
 | 状态隔离 | 每组功能前重新加载页面，避免相互污染 |
 | 构建验证 | `npm run build` 通过（含全部修改） |
 
-### 8.2 验证结果：54/54 通过
+### 8.2 首轮重构验证：54/54 通过
 
 | 组 | 项数 | 覆盖内容 | 结果 |
 |---|---|---|---|
@@ -457,19 +482,40 @@ export default {
 | 动态改 `_disabled`：解禁后可勾选；已选行再禁选时勾选保留、复选框转禁用 | 选择列实时响应，不反向清除已有选中 |
 | `getSelectedRows()` 返回含禁选回显行的完整选中集合 | 程序化选中计入 |
 
-### 8.4 验证期间发现并修复的问题（本次重构引入，非旧版遗留）
+### 8.4 二次审查验证（本轮，Playwright 实测）
+
+针对 §7.2 修复项与专项场景的浏览器实测（headless Chromium，逐项断言 DOM 状态、组件镜像与 `el-table` store 一致性、事件日志）：
+
+| 组 | 项数 | 覆盖内容 | 结果 |
+|---|---|---|---|
+| 基线 | 1 | id 2/7 复选框置灰 | ✅ |
+| `_disabled` 三态 | 3 | `true` 点击无效、`false` 可选、未设置可选 | ✅ |
+| 行事件独立 | 1 | 禁选行 `row-click` 正常触发且不勾选 | ✅ |
+| 全选/取消 | 3 | 全选跳过禁选行（10 选 8）、DOM 勾选数一致、取消全选清空 | ✅ |
+| singleSelection | 3 | 复选框路径收敛且事件无泄漏、行点击路径收敛、表头全选后 ≤1 项且镜像与 store 一致 | ✅ |
+| 额外 `selectable` | 1 | 与 `_disabled` 取交集（禁用 6/10） | ✅ |
+| 程序化回显 | 3 | `setSelection` 选中禁选行、复选框“已勾选且禁用”态、动态解禁/再禁选时已选保留 | ✅ |
+| 数据更新 | 3 | 整批替换后按 rowKey 保留且镜像换新引用、空数据下程序化选中后数据到达回显、`defaultSelection` 变化整体替换 | ✅ |
+| 已选面板 | 2 | locked 行无移除按钮、普通行移除生效且事件同步 | ✅ |
+| 分页 | 2 | 翻页一次 `search(pageNum=2)`、改每页条数一次 `search` | ✅ |
+| 表单/事件 | 5 | slot 字段默认值写入、重置恢复默认值并派发 `reset`、`current-change` 双参数、`filter-change` 转发、筛选生效 | ✅ |
+| 稳定性 | 3 | 主流程无 JS 错误、demo 页无 JS 错误、`reserveSelection` 缺 `rowKey` 不再抛错 | ✅ |
+
+demo 页冒烟：加载渲染、全选 8 行、程序化选中禁用行（置灰勾选态）、禁选行“编辑”按钮可点、全程无页面错误 —— 全部通过。
+
+### 8.5 验证期间发现并修复的问题（首轮重构引入，非旧版遗留）
 
 | 问题 | 现象 | 修复 |
 |---|---|---|
 | 树多选丢失父节点 | `onTreeCheck` 误用 `getCheckedKeys(true)`（仅叶子），父子不联动下勾选“总部”返回空数组 | 改为 `getCheckedKeys()` 取全部勾选节点 |
 | 翻页误清空选中 | 清空逻辑挂在 `search()` 内部，翻页/回车也触发，破坏跨页保留 | 清空移至查询按钮处理器 `handleSearchClick`，与旧组件 `searchClick` 语义一致 |
 
-### 8.5 未覆盖项（如实说明）
+### 8.6 未覆盖项（如实说明）
 
-- `fitHeight` 视口测量、`searchOnFieldsChange='first'/'always'`、`singleSelection` 与表头全选的交互组合：已实现并通过编译与代码走查，未纳入浏览器断言。
+- `fitHeight` 视口测量、`searchOnFieldsChange='first'/'always'` 的浏览器断言：已实现并通过编译与代码走查，未纳入自动化断言。
 - 旧 `h-table` 专有行为（`dataCheckedProp`、`showTitle` 等）因外部库源码不在项目内，无法验证，处理方式见 §6.2。
 
-### 8.6 手工回归清单
+### 8.7 手工回归清单
 
 1. `npm run dev` 打开首页 ConfigTable 区块。
 2. 按 §8.2 各组逐项操作：查询/重置/回车 → 各类控件 → 更多/收起 → 勾选与全选（观察 id 2/7 置灰）→ 工具栏“程序化选中禁用行/获取选中/清空选中/切换第2行禁选” → 翻页观察已选面板与 locked 行 → 点击“编码”表头排序。

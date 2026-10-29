@@ -34,6 +34,7 @@ const ConfigTableColumn = {
       className: col.className,
       labelClassName: col.labelClassName,
       filters: col.filters,
+      filterMethod: col.filterMethod,
       filterMultiple: col.filterMultiple !== false,
     }
     if (col.type === 'selection') {
