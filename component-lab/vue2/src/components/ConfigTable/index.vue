@@ -619,8 +619,20 @@ export default {
           }
           return
         }
-        if (field.customRange && this.customRangeChecked[this.fieldKey(field)] === undefined) {
-          this.$set(this.customRangeChecked, this.fieldKey(field), false)
+        if (field.customRange) {
+          const cr = field.customRange
+          const crDv = cr.defaultValue
+          if (this.form[cr.startProp] === undefined) {
+            this.$set(this.form, cr.startProp, (crDv && crDv[0]) ?? '')
+          }
+          if (this.form[cr.endProp] === undefined) {
+            this.$set(this.form, cr.endProp, (crDv && crDv[1]) ?? '')
+          }
+          if (this.customRangeChecked[this.fieldKey(field)] === undefined) {
+            // 日期已有值（默认值/回显）即视为启用，保持复选框与数据一致
+            const hasRange = !!(this.form[cr.startProp] || this.form[cr.endProp])
+            this.$set(this.customRangeChecked, this.fieldKey(field), hasRange)
+          }
         }
         const dv = field.defaultValue
         if (field.type === 'double-input' || field.type === 'select-input') {
@@ -1105,21 +1117,25 @@ export default {
     display: flex;
     align-items: center;
     gap: 4px;
+    // 列宽不足（三列布局 + extraOptions）时整行换行，避免数字输入被压到不可读
+    flex-wrap: wrap;
 
     ::v-deep .el-input {
-      flex: 1;
+      flex: 1 1 88px;
       width: auto;
+    }
+
+    // 附带单位下拉：搜索区通用规则 `.el-select { width: 100% }` 特异性更高，
+    // 需在字段作用域内以同等特异性声明覆盖，并禁止 flex 收缩
+    ::v-deep .config-table__extra-select {
+      width: 90px;
+      flex: none;
     }
   }
 
   &__range-sep {
     padding: 0 2px;
     color: #606266;
-  }
-
-  &__extra-select {
-    width: 90px;
-    flex: none;
   }
 
   &__select-input {
@@ -1138,9 +1154,13 @@ export default {
     display: flex;
     align-items: center;
     gap: 8px;
+    // 空间不足（三列布局下常见）时允许换行，日期编辑器独占整行
+    flex-wrap: wrap;
 
+    // 与复选框同行时占满剩余宽度；剩余宽度不足 240px（两个完整日期
+    // yyyy-MM-dd 所需）时整行换行，避免日期文本被截断
     ::v-deep .el-date-editor {
-      flex: 1;
+      flex: 1 1 240px;
     }
 
     &--inline {
