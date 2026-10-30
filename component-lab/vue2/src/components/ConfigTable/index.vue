@@ -64,7 +64,9 @@
                 @input="val => updateField(field.prop, val, field)"
               >
                 <div v-if="field.multiple && field.checkAll" class="config-table__select-header">
-                  <el-button type="text" size="mini" @click="selectAllOptions(field)">全选</el-button>
+                  <el-button type="text" size="mini" @click="selectAllOptions(field)"
+                    >全选</el-button
+                  >
                   <el-button type="text" size="mini" @click="invertOptions(field)">反选</el-button>
                 </div>
                 <el-option
@@ -117,14 +119,18 @@
                 @visible-change="visible => visible && syncTreeChecked(field)"
                 @clear="updateField(field.prop, field.multiple ? [] : '', field)"
               >
-                <el-option
-                  v-for="node in flattenTreeNodes(field)"
-                  v-if="field.multiple"
-                  :key="'opt-' + String(node[treeConfig(field).value])"
-                  class="config-table__tree-mapping-option"
-                  :label="node[treeConfig(field).label]"
-                  :value="node[treeConfig(field).value]"
-                />
+                <!-- 多选模式：为每个节点映射一条隐藏 option，用于标签回显 -->
+                <template v-if="field.multiple">
+                  <el-option
+                    v-for="node in flattenTreeNodes(field)"
+                    :key="'opt-' + String(node[treeConfig(field).value])"
+                    class="config-table__tree-mapping-option"
+                    :label="node[treeConfig(field).label]"
+                    :value="node[treeConfig(field).value]"
+                  />
+                </template>
+
+                <!-- 树本体：多选时作为禁用 option 提供勾选面板，单选时即为可选项 -->
                 <el-option
                   class="config-table__tree-option"
                   :disabled="!!field.multiple"
@@ -300,12 +306,21 @@
         >
           <div class="config-table__selected-header">
             <span>当前已选 {{ selection.length }} 项</span>
-            <el-button v-if="selectionPanelClearAll" type="text" size="mini" @click="clearSelection()">
+            <el-button
+              v-if="selectionPanelClearAll"
+              type="text"
+              size="mini"
+              @click="clearSelection()"
+            >
               清空
             </el-button>
           </div>
           <div class="config-table__selected-list">
-            <p v-for="(row, i) in selection" :key="selectionRowKey(row, i)" class="config-table__selected-item">
+            <p
+              v-for="(row, i) in selection"
+              :key="selectionRowKey(row, i)"
+              class="config-table__selected-item"
+            >
               <span>{{ selectionRowText(row) }}</span>
               <el-button
                 v-if="!isRowLocked(row)"
@@ -506,7 +521,8 @@ export default {
     },
     buttonColumnSpan() {
       const rem = this.renderedFields.length % this.searchColumns
-      const span = (rem === 0 ? this.searchColumns : this.searchColumns - rem) * this.fieldColumnSpan
+      const span =
+        (rem === 0 ? this.searchColumns : this.searchColumns - rem) * this.fieldColumnSpan
       return span >= this.fieldColumnSpan ? span : this.fieldColumnSpan
     },
     hasSelectionColumn() {
@@ -538,10 +554,7 @@ export default {
         this.applyFieldDefaults()
         if (this.searchOnFieldsChange === 'always') {
           this.$nextTick(() => this.search())
-        } else if (
-          this.searchOnFieldsChange === 'first' &&
-          !this.fieldsChangedOnce
-        ) {
+        } else if (this.searchOnFieldsChange === 'first' && !this.fieldsChangedOnce) {
           this.fieldsChangedOnce = true
           this.$nextTick(() => this.search())
         }
@@ -601,7 +614,7 @@ export default {
             this.$set(
               this.form,
               field.prop,
-              field.defaultValue !== undefined ? field.defaultValue : field.multiple ? [] : ''
+              field.defaultValue !== undefined ? field.defaultValue : field.multiple ? [] : '',
             )
           }
           return
@@ -623,7 +636,11 @@ export default {
             this.form[field.extraProp] === undefined
           ) {
             const first = (field.extraOptions || [])[0]
-            this.$set(this.form, field.extraProp, field.extraDefaultValue ?? (first && first.value) ?? '')
+            this.$set(
+              this.form,
+              field.extraProp,
+              field.extraDefaultValue ?? (first && first.value) ?? '',
+            )
           }
         } else if (field.type === 'daterange') {
           if (this.form[field.startProp] === undefined) {
@@ -646,7 +663,11 @@ export default {
       this.$emit('search-change', value, field, { ...this.form })
     },
     updateNumberField(key, value, field) {
-      const v = sanitizeNumeric(value, field.precision === undefined ? 0 : field.precision, field.allowNegative)
+      const v = sanitizeNumeric(
+        value,
+        field.precision === undefined ? 0 : field.precision,
+        field.allowNegative,
+      )
       this.updateField(key, v, field)
     },
     updateRangeNumberField(field, side, value) {
@@ -725,7 +746,9 @@ export default {
         // 关闭自定义区间时清空其日期值，恢复主控件
         this.updateCustomRange(field, null)
       }
-      this.$emit('search-change', this.customRangeChecked[this.fieldKey(field)], field, { ...this.form })
+      this.$emit('search-change', this.customRangeChecked[this.fieldKey(field)], field, {
+        ...this.form,
+      })
     },
     customRangeValue(field) {
       const cr = field.customRange
@@ -745,15 +768,17 @@ export default {
       this.$emit('search-change', val, field, { ...this.form })
     },
     selectAllOptions(field) {
-      const values = (field.options || [])
-        .filter(o => !o.disabled)
-        .map(o => o.value)
+      const values = (field.options || []).filter(o => !o.disabled).map(o => o.value)
       this.updateField(field.prop, values, field)
     },
     invertOptions(field) {
       const all = (field.options || []).filter(o => !o.disabled).map(o => o.value)
       const current = this.form[field.prop] || []
-      this.updateField(field.prop, all.filter(v => !current.includes(v)), field)
+      this.updateField(
+        field.prop,
+        all.filter(v => !current.includes(v)),
+        field,
+      )
     },
     // ---------- 树形下拉 ----------
     treeConfig(field) {
@@ -865,7 +890,11 @@ export default {
         this._pendingSingleRow = row
       }
       // 单选模式只上报收敛后的结果（收敛在 handleSelectionChange 执行）
-      this.$emit('select', this.singleSelection ? (selection.includes(row) ? [row] : []) : selection, row)
+      this.$emit(
+        'select',
+        this.singleSelection ? (selection.includes(row) ? [row] : []) : selection,
+        row,
+      )
     },
     handleSelectAll(selection) {
       // selection-change 先于 select-all 派发，singleSelection 的收敛已在
@@ -873,14 +902,8 @@ export default {
       this.$emit('select-all', this.selection)
     },
     handleRowClick(row, column, event) {
-      if (
-        this.rowClickSelect &&
-        this.hasSelectionColumn &&
-        this.isRowSelectable(row)
-      ) {
-        const isSelected = this.selection.some(
-          r => this.rowIdentity(r) === this.rowIdentity(row)
-        )
+      if (this.rowClickSelect && this.hasSelectionColumn && this.isRowSelectable(row)) {
+        const isSelected = this.selection.some(r => this.rowIdentity(r) === this.rowIdentity(row))
         if (this.singleSelection && !isSelected) this._pendingSingleRow = row
         this.$refs.table.toggleRowSelection(row, !isSelected)
       }
@@ -928,7 +951,10 @@ export default {
       const props = this.selectionDisplayProps.length
         ? this.selectionDisplayProps
         : Object.keys(row).slice(0, 2)
-      return props.map(p => row[p]).filter(v => v !== undefined && v !== null).join(' / ')
+      return props
+        .map(p => row[p])
+        .filter(v => v !== undefined && v !== null)
+        .join(' / ')
     },
     isRowLocked(row) {
       return !!this.lockedKey && row[this.lockedKey] === true
