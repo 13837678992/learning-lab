@@ -32,6 +32,7 @@
         <el-button size="small" @click="echoDisabledRow">程序化选中禁用行</el-button>
         <el-button size="small" @click="clearSelect">清空选中</el-button>
         <el-button size="small" @click="toggleRow2Disabled">切换第2行禁选</el-button>
+        <el-button size="small" @click="echoSearchForm">模拟编辑回显</el-button>
       </template>
 
       <template #fieldSlot="{ form }">
@@ -74,11 +75,16 @@ const allRows = Array.from({ length: 25 }, (_, i) => {
     name: '数据项 ' + n,
     category: n % 2 === 0 ? 'B' : 'A',
     amount: n * 100,
+    // 创建日期：2026-10-01 起逐日递增，供自定义区间 cusStart/cusEnd 过滤演示
+    createdAt: '2026-10-' + String(n).padStart(2, '0'),
     canDelete: n % 5 !== 0,
     _disabled: n === 2 || n === 7 ? true : n === 3 ? false : undefined,
     locked: n === 4 || n === 9,
   }
 })
+
+// extraOptions 单位换算：万元 → 元，便于用同一 amount 字段过滤
+const AMOUNT_UNIT_RATE = { yuan: 1, wan: 10000 }
 
 export default {
   name: 'ConfigTableDemo',
@@ -124,7 +130,9 @@ export default {
           { label: '停用', value: '0' },
         ], customRange: { startProp: 'cusStart', endProp: 'cusEnd' } },
         { type: 'daterange', label: '创建日期', startProp: 'startDate', endProp: 'endDate' },
-        { type: 'double-input', label: '金额区间', startProp: 'minAmount', endProp: 'maxAmount', unit: '元', startLimit: { min: 0 }, endLimit: { max: 10000 },
+        // 金额区间：单位由 extraOptions 下拉切换（元/万元），值写入 extraProp；
+        // 不再同时配置 unit，避免固定单位文字与可切换单位下拉语义重复
+        { type: 'double-input', label: '金额区间', startProp: 'minAmount', endProp: 'maxAmount', startLimit: { min: 0 }, endLimit: { max: 10000 },
           extraProp: 'amountUnit', extraOptions: [{ label: '元', value: 'yuan' }, { label: '万元', value: 'wan' }] },
         { prop: 'codeInput', label: '编码关键字', type: 'unit-input', unit: '号', precision: 0 },
         { type: 'select-input', label: '类型关键字', startProp: 'type', endProp: 'keyword', options: [
@@ -132,6 +140,8 @@ export default {
           { label: '订单', value: 'dd' },
         ] },
         { prop: 'dateLimit', label: '生效日期', type: 'date', disableFuture: true, maxSpanDays: 30 },
+        // 固定单位的数字区间（不配置 extraOptions），对照“仅 unit”场景
+        { type: 'double-input', label: '数量区间', startProp: 'minQty', endProp: 'maxQty', unit: '件', precision: 0 },
         { prop: 'remark', label: '备注', type: 'input' },
         { prop: 'owner', label: '负责人', type: 'tree', treeData: [
           { value: 'u1', label: '张三', children: [{ value: 'u11', label: '张三助理' }] },
@@ -149,13 +159,21 @@ export default {
     fetch(params) {
       this.loading = true
       setTimeout(() => {
-        const { pageNum = 1, pageSize = 10, name, category, minAmount, maxAmount } = params
+        // params 即组件 search 事件载荷：含 searchForm 全部字段 + pageNum/pageSize
+        const { pageNum = 1, pageSize = 10, name, category, minAmount, maxAmount, amountUnit, cusStart, cusEnd, minQty, maxQty } = params
         let list = allRows.slice()
         if (this.filterOnlyActive) list = list.filter(r => !r._disabled)
         if (name) list = list.filter(r => r.name.includes(name))
         if (category && category.length) list = list.filter(r => category.includes(r.category))
-        if (minAmount != null && minAmount !== '') list = list.filter(r => r.amount >= Number(minAmount))
-        if (maxAmount != null && maxAmount !== '') list = list.filter(r => r.amount <= Number(maxAmount))
+        // 金额区间按所选单位换算成“元”后过滤（yuan: 1、wan: 10000，默认 yuan）
+        const rate = AMOUNT_UNIT_RATE[amountUnit] || 1
+        if (minAmount != null && minAmount !== '') list = list.filter(r => r.amount >= Number(minAmount) * rate)
+        if (maxAmount != null && maxAmount !== '') list = list.filter(r => r.amount <= Number(maxAmount) * rate)
+        // 自定义区间日期过滤（启用后主控件值被禁用，以 cusStart/cusEnd 为准）
+        if (cusStart) list = list.filter(r => r.createdAt >= cusStart)
+        if (cusEnd) list = list.filter(r => r.createdAt <= cusEnd)
+        if (minQty != null && minQty !== '') list = list.filter(r => r.id >= Number(minQty))
+        if (maxQty != null && maxQty !== '') list = list.filter(r => r.id <= Number(maxQty))
         this.total = list.length
         this.tableData = list.slice((pageNum - 1) * pageSize, pageNum * pageSize)
         this.loading = false
@@ -168,8 +186,18 @@ export default {
     handleReset() {
       this.log = 'reset 事件（已恢复默认查询条件）'
     },
-    handleSearchChange(value, field) {
-      this.log = 'search-change 事件: ' + field.label + ' = ' + JSON.stringify(value)
+    handleSearchChange(value, field, form) {
+      let extra = ''
+      // 自定义区间：同时展示勾选态与 customRange.startProp/endProp 的实际值，便于观察启用/关闭/重开
+      if (field.customRange) {
+        const cr = field.customRange
+        extra = '，' + cr.startProp + '=' + JSON.stringify(form[cr.startProp]) + '，' + cr.endProp + '=' + JSON.stringify(form[cr.endProp])
+      }
+      // double-input + extraOptions：展示区间值与单位，便于观察切换与回显
+      if (field.type === 'double-input' && field.extraProp) {
+        extra = '，' + field.startProp + '=' + JSON.stringify(form[field.startProp]) + '，' + field.endProp + '=' + JSON.stringify(form[field.endProp]) + '，' + field.extraProp + '=' + JSON.stringify(form[field.extraProp])
+      }
+      this.log = 'search-change 事件: ' + field.label + ' = ' + JSON.stringify(value) + extra
     },
     handleSelectionChange(selection) {
       this.log = 'selection-change: 已选 ' + selection.length + ' 项 → ' + selection.map(r => r.id).join(',')
@@ -209,6 +237,27 @@ export default {
       if (!row) return
       this.$set(row, '_disabled', row._disabled !== true)
       this.log = '动态修改：id=2 行 _disabled → ' + row._disabled
+    },
+    // 模拟“打开编辑页回显已保存查询条件”：通过字段 defaultValue 回填后重置表单。
+    // 覆盖 double-input 的区间值 + extraDefaultValue（万元）与 customRange.defaultValue（启用态日期区间）
+    echoSearchForm() {
+      const echo = {
+        minAmount: '1', maxAmount: '2', amountUnit: 'wan',
+        cusStart: '2026-10-08', cusEnd: '2026-10-18',
+      }
+      this.searchFields = this.searchFields.map(f => {
+        if (f.type === 'double-input' && f.extraProp === 'amountUnit') {
+          return { ...f, defaultValue: [echo.minAmount, echo.maxAmount], extraDefaultValue: echo.amountUnit }
+        }
+        if (f.customRange) {
+          return { ...f, customRange: { ...f.customRange, defaultValue: [echo.cusStart, echo.cusEnd] } }
+        }
+        return f
+      })
+      this.$nextTick(() => {
+        this.$refs.table.resetSearch()
+        this.log = '回显：金额区间 1~2 万元、自定义区间 ' + echo.cusStart + ' ~ ' + echo.cusEnd + '（已启用）'
+      })
     },
     batchAction(name) {
       const rows = this.$refs.table.getSelectedRows()
