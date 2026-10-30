@@ -169,9 +169,82 @@ export default {
 | `tree` | `treeData`、`treeProps: {children,label,value}`(默认 `{children:'children',label:'label',value:'value'}`)、`multiple`、`expandAll` | 树形下拉；单选存节点值，多选存节点值数组（父子不联动） |
 | `date` | `dateType`('date'/'datetime'/'month')、`format`、`valueFormat`(默认按类型 `yyyy-MM-dd` 等)、`disableFuture`、`maxSpanDays`、`pickerOptions` | 日期选择 |
 | `daterange` | `startProp`、`endProp`、`dateType`(range/datetimerange/monthrange)、`format`、`valueFormat`、`disableFuture`、`maxSpanDays`、`pickerOptions` | 日期范围，值拆分写入 `startProp/endProp` |
-| `double-input` | `startProp`、`endProp`、`precision`(默认 2)、`allowNegative`、`unit`、`startLimit:{min,max}`、`endLimit:{min,max}`、`extraProp`、`extraOptions`、`extraDefaultValue` | 数字区间 + 单位 + 附带下拉；输入实时清洗（仅数字、单个小数点、限小数位），失焦钳制上下限 |
+| `double-input` | `startProp`、`endProp`、`precision`(默认 2)、`allowNegative`、`unit`、`startLimit:{min,max}`、`endLimit:{min,max}`、`extraProp`、`extraOptions`、`extraDefaultValue` | 数字区间 + 固定单位文字 + 可切换单位下拉；输入实时清洗（仅数字、单个小数点、限小数位），失焦钳制上下限。`extraOptions` 详见 2.1.3 |
 | `unit-input` | `unit`、`precision`(默认 0) | 数字输入 + 后缀单位 |
-| 任意 + `customRange` | `customRange: {startProp,endProp,dateType,format,valueFormat}` | 控件后附“自定义区间”复选框：勾选后主控件禁用（全部控件类型）、日期可用，值写入 `customRange.startProp/endProp`，日期变化派发 `search-change`；取消勾选清空日期值 |
+| 任意 + `customRange` | `customRange: {startProp,endProp,dateType,format,valueFormat,defaultValue}` | 控件后附“自定义区间”复选框：勾选后主控件禁用（全部控件类型）、日期可用，值写入 `customRange.startProp/endProp`，日期变化派发 `search-change`；取消勾选清空日期值。详见 2.1.4 |
+
+#### 2.1.3 `double-input` 的单位：`unit` 与 `extraOptions`
+
+`double-input` 有两种互相独立的单位表达方式，按业务语义二选一（同时配置时会先后渲染固定文字与下拉，视觉上重复）：
+
+| 键 | 类型 | 说明 |
+|---|---|---|
+| `unit` | `String` | **固定单位**，在第二个输入框后展示纯文本（如 `'件'`），不写入表单 |
+| `extraProp` | `String` | **可切换单位**的表单键，下拉选中值写入 `form[extraProp]`，随 `search` 载荷一起传出 |
+| `extraOptions` | `Array<{ label, value }>` | 下拉选项：`label` 为展示文字，`value` 为写入 `extraProp` 的值（`String/Number` 均可；同一字段内需唯一，作为选项 key 使用）。配置了 `extraOptions` 才渲染下拉 |
+| `extraDefaultValue` | 任意 | `extraProp` 的默认值；缺省取 `extraOptions[0].value`；`extraOptions` 为空时为 `''` |
+
+```js
+// 金额区间：元 / 万元 可切换，单位值写入 amountUnit
+{
+  type: 'double-input', label: '金额区间',
+  startProp: 'minAmount', endProp: 'maxAmount',
+  startLimit: { min: 0 }, endLimit: { max: 10000 },
+  extraProp: 'amountUnit',
+  extraOptions: [
+    { label: '元', value: 'yuan' },
+    { label: '万元', value: 'wan' },
+  ],
+  // extraDefaultValue: 'wan',        // 缺省为首项 'yuan'
+}
+// 数量区间：固定单位“件”，不需要下拉
+{ type: 'double-input', label: '数量区间', startProp: 'minQty', endProp: 'maxQty', unit: '件', precision: 0 }
+```
+
+**数据与回显**：`form` 中始终存在 `startProp`、`endProp`、`extraProp` 三个键（初始化时按 `defaultValue: [start, end]` 与 `extraDefaultValue` 写入）；`search` 载荷形如 `{ minAmount: '1', maxAmount: '2', amountUnit: 'wan' }`。切换下拉会立即更新 `form[extraProp]` 并派发 `search-change(value, field, form)`。回显已保存条件时，通过字段的 `defaultValue` / `extraDefaultValue` 配置后调用 `resetSearch()`（或在首次渲染前配置好 `searchFields`），下拉会按 `value` 匹配并显示对应 `label`。
+
+**布局说明**：下拉固定 90px 宽、不参与收缩；列宽不足以同时容纳两个数字输入与下拉时（如三列布局），下拉自动换到第二行，保证数字可读。未配置 `extraOptions` 的字段布局不受影响。
+
+#### 2.1.4 自定义区间 `customRange`
+
+任意类型的查询字段都可以附加 `customRange`，在主控件后渲染“自定义区间”复选框 + 日期范围选择器，用于“按枚举值查询”与“按自定义日期区间查询”互斥切换的场景（旧 `isShowCustomize + customize`）。
+
+| 键 | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| `startProp` / `endProp` | `String` | — | 必填。区间起止值写入 `form` 的键，与主控件的 `prop` 相互独立 |
+| `dateType` | `String` | `'daterange'` | `daterange` / `datetimerange` / `monthrange` |
+| `format` / `valueFormat` | `String` | 按 `dateType`：`yyyy-MM-dd` / `yyyy-MM-dd HH:mm:ss` / `yyyy-MM` | 展示格式 / 写入表单的字符串格式（与 `daterange` 字段一致，表单中为字符串而非 `Date`） |
+| `defaultValue` | `[start, end]` | — | 区间默认值（字符串，需符合 `valueFormat`）；有值时初始即为启用态（见下） |
+
+**启用与数据流**（以 `{ prop: 'status', customRange: { startProp: 'cusStart', endProp: 'cusEnd' } }` 为例）：
+
+| 操作 | `form` 变化 | 控件状态 | 事件 |
+|---|---|---|---|
+| 初始化 | `cusStart: ''`、`cusEnd: ''`（无默认值时） | 复选框未勾选，日期禁用，主控件可用 | — |
+| 勾选“自定义区间” | 不变 | 主控件禁用（值保留不清空），日期可用 | `search-change(true, field, form)` |
+| 选择日期 | `cusStart: '2026-10-05'`、`cusEnd: '2026-10-25'` | 输入框完整显示起止日期 | `search-change(['2026-10-05','2026-10-25'], field, form)` |
+| 取消勾选 | `cusStart: ''`、`cusEnd: ''` | 日期清空并禁用，主控件恢复可用 | `search-change(false, field, form)` |
+| 重新勾选 | 仍为空 | 日期可用，需重新选择 | `search-change(true, field, form)` |
+| 点击重置 | 回到初始化状态（含 `defaultValue`） | 同初始化 | `reset(form)` |
+
+**载荷与回显规则**：
+
+- `search` 载荷始终同时包含主控件键与区间键，例如 `{ status: '1', cusStart: '2026-10-05', cusEnd: '2026-10-25' }`；组件不会自动清空主控件值，由调用方按“区间键有值则以区间为准”的约定取舍。
+- 回显：`customRange.defaultValue` 有值，或初始化时 `form` 中 `startProp/endProp` 任一已有值，复选框**自动勾选**并禁用主控件、展示日期；两者皆空则为未勾选。复选框状态只在初始化/重置时按此规则推导，之后完全跟随用户操作，`searchFields` 变化不会覆盖用户已改的勾选态。
+- 关闭再启用不会恢复之前选择的日期（与旧组件一致，按“清空”语义设计）。
+
+**布局说明**：复选框与日期选择器同行排列；所在列宽不足以完整显示两个日期（约 240px）时，日期选择器自动换行独占一行，避免日期被截断。
+
+```js
+{
+  prop: 'status', label: '状态', type: 'select', defaultValue: '1',
+  options: [{ label: '启用', value: '1' }, { label: '停用', value: '0' }],
+  customRange: {
+    startProp: 'cusStart', endProp: 'cusEnd',
+    // defaultValue: ['2026-10-08', '2026-10-18'],   // 回显：初始即启用并显示该区间
+  },
+}
+```
 
 #### 2.1.2 columns 列配置
 
@@ -303,6 +376,13 @@ export default {
 行内按钮/行点击不受影响、程序化选中禁用行、跨页保留 + 已选面板移除/锁定、动态修改 `_disabled`、
 查询清空选中、全部 13 类搜索控件、多级表头、排序、分页电梯/每页条数、附加复选框过滤、
 自定义区间互斥、text/slot 字段）。
+
+其中与 §2.1.3 / §2.1.4 对应的演示：
+
+- **金额区间**（`double-input` + `extraOptions` 元/万元）：切换单位后 `.log` 区展示 `minAmount/maxAmount/amountUnit`；查询时按单位换算成“元”过滤 `amount` 字段（`wan` ×10000）。
+- **数量区间**（`double-input` + 固定 `unit: '件'`，无 `extraOptions`）：对照“仅固定单位”的单行布局。
+- **状态 + 自定义区间**：勾选后主控件禁用，选择日期后 `.log` 区展示 `cusStart/cusEnd`；查询时按行数据 `createdAt`（`2026-10-01` 起逐日）过滤；取消勾选清空、重新勾选为空启用态。
+- **工具栏“模拟编辑回显”按钮**：把 `金额区间 1~2 万元` 与 `自定义区间 2026-10-08 ~ 2026-10-18` 写入字段 `defaultValue / extraDefaultValue / customRange.defaultValue` 后调用 `resetSearch()`，演示编辑页回填：下拉显示“万元”、复选框自动勾选、日期完整显示；随后点“查询”可在 `.log` 中看到载荷携带 `amountUnit: 'wan'` 与 `cusStart/cusEnd`。
 
 ## 5. 其他功能说明
 
@@ -442,6 +522,17 @@ export default {
 | 自定义区间日期变化不派发 `search-change` | README 声明“任一查询字段值变化”触发，日期输入路径缺失 | 新增 `onCustomRangeDateChange` 派发事件 |
 | customRange 主控件禁用不完整 | README 声明“任意字段”勾选后主控件禁用，实际仅 `select`/`daterange`/`select-input` 生效 | input/unit-input/tree/date/double-input 一并遵守 |
 
+### 7.3 第三轮修复：double-input 单位下拉与自定义区间展示（本轮增量）
+
+均先在 Demo 中用 Playwright 复现、定位到根因后修复，再回归验证：
+
+| 问题 | 现象与根因 | 修复 |
+|---|---|---|
+| `double-input` 的 `extraOptions` 下拉展示异常 | 下拉被撑到整列宽（实测 237px）、溢出表单列并把两个数字输入挤到 48px（文本区仅 1px，数字不可见）。根因：搜索区通用规则 `.config-table__search ::v-deep .el-select { width: 100% }`（特异性 0,3,0）覆盖了 `.config-table__extra-select { width: 90px }`（0,2,0）；数据绑定本身正常（选项 `label/value` 渲染、切换写入 `extraProp`、回显均正确） | 宽度规则移入 `&__double-input ::v-deep` 作用域以同等特异性覆盖；容器允许换行、数字输入 `flex: 1 1 88px`，列宽不足时下拉换行而不是压缩输入；未配置 `extraOptions` 时布局不变 |
+| 自定义区间启用后选择日期展示异常 | 选择后 `form` 值、`search-change` 载荷、重开高亮均正确，但输入框只显示 `2026-1…`。根因：`&__custom-range` 单行 flex 中复选框占 94px，日期编辑器被压到 135px，内部两个 `el-range-input` 各 35px，`yyyy-MM-dd` 文本（71px）被截断 | 容器 `flex-wrap: wrap`，编辑器 `flex: 1 1 240px`：剩余宽度足够时同行，不足时整行换行完整显示 |
+| 自定义区间无法回显启用态 | `applyFieldDefaults` 不初始化 `customRange.startProp/endProp`（首次 `search` 载荷缺键），`customRangeChecked` 固定为 `false`：编辑回显时即使表单已有区间值，复选框仍未勾选、日期禁用、主控件可用，状态与数据不一致（旧组件同样缺失） | 初始化两键（支持 `customRange.defaultValue`）；初始化/重置时若任一键有值则自动勾选；之后勾选态只跟随用户操作，`searchFields` 变化不覆盖 |
+| 树形多选下拉空白（本轮工作区改动引入，未发布） | 模板重构把 `el-tree` 放进 `v-else`（仅单选渲染），多选时下拉只剩隐藏的映射 option | 多选渲染“隐藏映射 option + 树本体（禁用 option 承载）”，单选只渲染树本体，与原行为一致 |
+
 ## 8. 测试与验证
 
 ### 8.1 验证环境与方式
@@ -510,14 +601,42 @@ demo 页冒烟：加载渲染、全选 8 行、程序化选中禁用行（置灰
 | 树多选丢失父节点 | `onTreeCheck` 误用 `getCheckedKeys(true)`（仅叶子），父子不联动下勾选“总部”返回空数组 | 改为 `getCheckedKeys()` 取全部勾选节点 |
 | 翻页误清空选中 | 清空逻辑挂在 `search()` 内部，翻页/回车也触发，破坏跨页保留 | 清空移至查询按钮处理器 `handleSearchClick`，与旧组件 `searchClick` 语义一致 |
 
-### 8.6 未覆盖项（如实说明）
+### 8.6 第三轮验证：double-input 单位下拉与自定义区间（本轮，Playwright 实测）
+
+针对 §7.3 修复项，先在修复前复现（截图 + DOM 尺寸测量 + 组件实例状态），修复后按验收表逐项断言，36/36 通过；`npm run build` 通过。
+
+**复现数据（修复前）**：`extra-select` 计算宽度 237px（样式声明 90px，被搜索区 `.el-select{width:100%}` 覆盖）、两个数字输入 48px（文本区 1px）；自定义区间日期编辑器 135px、内部输入各 35px（`yyyy-MM-dd` 需 71px，`scrollWidth > clientWidth`）。数据层（`form` 值、`search-change` 载荷、重开高亮）在修复前后均正确。
+
+| 验证项 | 断言 | 结果 |
+|---|---|---|
+| double-input 元选项 | 默认选中首项，输入框显示“元”，`amountUnit='yuan'`；下拉展开同时可见“元”“万元” | ✅ |
+| double-input 万元选项 | 选择后显示“万元”，`amountUnit='wan'` | ✅ |
+| extraOptions 切换 | 元→万元→元 往返，`form[extraProp]` 与展示同步，每次派发 `search-change` | ✅ |
+| double-input 数据回显 | Demo“模拟编辑回显”后输入框 `1 / 2`、下拉按 `value='wan'` 显示“万元” | ✅ |
+| 不配置 extraOptions | “数量区间”无下拉、单行、固定单位“件”，布局与修复前一致 | ✅ |
+| 布局 | `extra-select` 90px、不溢出表单列；数字输入文本区 ≥ 40px、无截断；三列布局下下拉换行 | ✅ |
+| 自定义区间启用 | 复选框勾选、主控件禁用、日期可用且为空，派发 `search-change(true)` | ✅ |
+| 开始日期选择 | 面板记录起点（`minDate`）并进入选区态 | ✅ |
+| 结束日期选择 | `cusStart='2026-10-05'`、`cusEnd='2026-11-25'`（起止对应、`yyyy-MM-dd`），输入框完整显示无截断，派发 `search-change([start,end])` | ✅ |
+| 日期数据向外传递 | 点击查询，`search` 载荷含 `cusStart/cusEnd/amountUnit`；Demo 按 `createdAt` 过滤得 21 条、首页从 CODE-005 起 | ✅ |
+| 编辑状态日期回显 | `customRange.defaultValue` 回填后复选框自动勾选、主控件禁用、日期完整显示；再次打开面板起止高亮（start=5/end=25） | ✅ |
+| 关闭后重新启用 | 关闭：日期清空、禁用、主控件恢复、`status` 值不变；重开：启用态且日期为空，不恢复旧值 | ✅ |
+| 重置 | 回到含默认值的初始态（回显默认仍生效、自动勾选） | ✅ |
+| `searchFields` 变化 | 用户已关闭勾选后追加无关字段，勾选态与区间值不被覆盖 | ✅ |
+| 原有功能冒烟 | 树多选勾选父节点 `['o1']`、树单选 `'u2'`、主 `daterange` 写入、多选全选、`_disabled` 行置灰、表头全选 10 选 8、翻页 `pageNum=2` 且序号从 11 连续 | ✅ |
+| 稳定性 | 全程无 JS 运行时错误 | ✅ |
+
+### 8.7 未覆盖项（如实说明）
 
 - `fitHeight` 视口测量、`searchOnFieldsChange='first'/'always'` 的浏览器断言：已实现并通过编译与代码走查，未纳入自动化断言。
 - 旧 `h-table` 专有行为（`dataCheckedProp`、`showTitle` 等）因外部库源码不在项目内，无法验证，处理方式见 §6.2。
+- 本轮布局修复仅在 1440px 视口、三列（`searchColumns=3`）布局下实测；`datetimerange`（更长的 `yyyy-MM-dd HH:mm:ss` 文本）与一列/两列布局未做浏览器断言，依赖同一 `flex-wrap` 规则按剩余宽度自适应。
+- `extraOptions` 的 `value` 为 `Number` 类型时的回显按 Element `el-option` 严格相等匹配，未单独实测。
 
-### 8.7 手工回归清单
+### 8.8 手工回归清单
 
 1. `npm run dev` 打开首页 ConfigTable 区块。
-2. 按 §8.2 各组逐项操作：查询/重置/回车 → 各类控件 → 更多/收起 → 勾选与全选（观察 id 2/7 置灰）→ 工具栏“程序化选中禁用行/获取选中/清空选中/切换第2行禁选” → 翻页观察已选面板与 locked 行 → 点击“编码”表头排序。
-3. 页面底部 `.log` 区域实时显示 `search / reset / search-change / selection-change / select / row-click / sort-change / filter-checkbox-change` 事件载荷，可作为断言依据。
+2. 按 §8.2 各组逐项操作：查询/重置/回车 → 各类控件 → 更多/收起 → 勾选与全选（观察 id 2/7 置灰）→ 工具栏“程序化选中禁用行/获取选中/清空选中/切换第2行禁选/模拟编辑回显” → 翻页观察已选面板与 locked 行 → 点击“编码”表头排序。
+3. 本轮重点：展开“更多”后，金额区间下拉切换“元/万元”、输入区间；状态字段勾选“自定义区间”后选择日期、关闭再勾选；点击“模拟编辑回显”观察回填，再点“查询”看 `.log` 载荷。
+4. 页面底部 `.log` 区域实时显示 `search / reset / search-change / selection-change / select / row-click / sort-change / filter-checkbox-change` 事件载荷，可作为断言依据。
 
