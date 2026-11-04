@@ -36,7 +36,11 @@
       </template>
 
       <template #fieldSlot="{ form }">
-        <el-input :value="form.customDemo" placeholder="自定义插槽控件" @input="v => $set(form, 'customDemo', v)" />
+        <el-input
+          :value="form.customDemo"
+          placeholder="自定义插槽控件"
+          @input="v => $set(form, 'customDemo', v)"
+        />
       </template>
 
       <template #statusCell="{ row }">
@@ -108,48 +112,115 @@ export default {
             { prop: 'category', label: '类别', width: 90 },
           ],
         },
-        { prop: 'amount', label: '金额', width: 110, align: 'right', formatter: (row, col, val) => Number(val).toFixed(2) },
+        {
+          prop: 'amount',
+          label: '金额',
+          width: 110,
+          align: 'right',
+          formatter: (row, col, val) => Number(val).toFixed(2),
+        },
         { prop: 'tag', label: '状态', width: 90, slot: 'tagCell' },
         { prop: 'op', label: '操作', width: 140, slot: 'statusCell' },
       ],
       searchFields: [
         { prop: 'name', label: '名称', type: 'input', maxlength: 20 },
-        { prop: 'category', label: '类别', type: 'select', multiple: true, checkAll: true, options: [
-          { label: 'A 类', value: 'A' },
-          { label: 'B 类', value: 'B' },
-        ] },
-        { prop: 'org', label: '组织', type: 'tree', multiple: true, treeData: [
-          { value: 'o1', label: '总部', children: [
-            { value: 'o11', label: '一部' },
-            { value: 'o12', label: '二部' },
-          ] },
-          { value: 'o2', label: '分部' },
-        ] },
-        { prop: 'status', label: '状态', span: 16, type: 'select', defaultValue: '1', options: [
-          { label: '启用', value: '1' },
-          { label: '停用', value: '0' },
-        ], customRange: { startProp: 'cusStart', endProp: 'cusEnd' } },
+        {
+          prop: 'category',
+          label: '类别',
+          type: 'select',
+          multiple: true,
+          checkAll: true,
+          options: [
+            { label: 'A 类', value: 'A' },
+            { label: 'B 类', value: 'B' },
+          ],
+        },
+        {
+          prop: 'org',
+          label: '组织',
+          type: 'tree',
+          multiple: true,
+          treeData: [
+            {
+              value: 'o1',
+              label: '总部',
+              children: [
+                { value: 'o11', label: '一部' },
+                { value: 'o12', label: '二部' },
+              ],
+            },
+            { value: 'o2', label: '分部' },
+          ],
+        },
+        {
+          prop: 'status',
+          label: '状态',
+          span: 16,
+          type: 'select',
+          defaultValue: '1',
+          options: [
+            { label: '启用', value: '1' },
+            { label: '停用', value: '0' },
+          ],
+          customRange: { startProp: 'cusStart', endProp: 'cusEnd' },
+        },
         { type: 'daterange', label: '创建日期', startProp: 'startDate', endProp: 'endDate' },
         // 金额区间：单位由 extraOptions 下拉切换（元/万元），值写入 extraProp；
         // 不再同时配置 unit，避免固定单位文字与可切换单位下拉语义重复。
         // span 16：三列栅格下内容区只有 237px，装不下「两个输入框 + 至 + 单位下拉」
         // 且不压缩输入框（120px 标签固定占用），故让该字段独占两列，
         // 单个输入框宽度与其余字段的输入框一致
-        { type: 'double-input', label: '金额区间', span: 16, startProp: 'minAmount', endProp: 'maxAmount', startLimit: { min: 0 }, endLimit: { max: 10000 },
-          extraProp: 'amountUnit', extraOptions: [{ label: '元', value: 'yuan' }, { label: '万元', value: 'wan' }] },
+        {
+          type: 'double-input',
+          label: '金额区间',
+          span: 16,
+          startProp: 'minAmount',
+          endProp: 'maxAmount',
+          startLimit: { min: 0 },
+          endLimit: { max: 10000 },
+          extraProp: 'amountUnit',
+          extraOptions: [
+            { label: '元', value: 'yuan' },
+            { label: '万元', value: 'wan' },
+          ],
+        },
         { prop: 'codeInput', label: '编码关键字', type: 'unit-input', unit: '号', precision: 0 },
-        { type: 'select-input', label: '类型关键字', startProp: 'type', endProp: 'keyword', options: [
-          { label: '合同', value: 'ht' },
-          { label: '订单', value: 'dd' },
-        ] },
-        { prop: 'dateLimit', label: '生效日期', type: 'date', disableFuture: true, maxSpanDays: 30 },
+        {
+          type: 'select-input',
+          label: '类型关键字',
+          startProp: 'type',
+          endProp: 'keyword',
+          options: [
+            { label: '合同', value: 'ht' },
+            { label: '订单', value: 'dd' },
+          ],
+        },
+        {
+          prop: 'dateLimit',
+          label: '生效日期',
+          type: 'date',
+          disableFuture: true,
+          maxSpanDays: 30,
+        },
         // 固定单位的数字区间（不配置 extraOptions），对照“仅 unit”场景
-        { type: 'double-input', label: '数量区间', startProp: 'minQty', endProp: 'maxQty', unit: '件', precision: 0 },
+        {
+          type: 'double-input',
+          label: '数量区间',
+          startProp: 'minQty',
+          endProp: 'maxQty',
+          unit: '件',
+          precision: 0,
+        },
         { prop: 'remark', label: '备注', type: 'input' },
-        { prop: 'owner', label: '负责人', type: 'tree', treeData: [
-          { value: 'u1', label: '张三', children: [{ value: 'u11', label: '张三助理' }] },
-          { value: 'u2', label: '李四' },
-        ] },
+        {
+          prop: 'owner',
+          label: '负责人',
+          type: 'tree',
+          treeData: [
+            { value: 'u1', label: '张三', children: [{ value: 'u11', label: '张三助理' }] },
+            { value: 'u2', label: '李四' },
+          ],
+        },
         { prop: 'tipText', label: '提示', type: 'text', defaultValue: '静态展示文本' },
         { label: '自定义', slot: 'fieldSlot' },
       ],
@@ -163,15 +234,29 @@ export default {
       this.loading = true
       setTimeout(() => {
         // params 即组件 search 事件载荷：含 searchForm 全部字段 + pageNum/pageSize
-        const { pageNum = 1, pageSize = 10, name, category, minAmount, maxAmount, amountUnit, cusStart, cusEnd, minQty, maxQty } = params
+        const {
+          pageNum = 1,
+          pageSize = 10,
+          name,
+          category,
+          minAmount,
+          maxAmount,
+          amountUnit,
+          cusStart,
+          cusEnd,
+          minQty,
+          maxQty,
+        } = params
         let list = allRows.slice()
         if (this.filterOnlyActive) list = list.filter(r => !r._disabled)
         if (name) list = list.filter(r => r.name.includes(name))
         if (category && category.length) list = list.filter(r => category.includes(r.category))
         // 金额区间按所选单位换算成“元”后过滤（yuan: 1、wan: 10000，默认 yuan）
         const rate = AMOUNT_UNIT_RATE[amountUnit] || 1
-        if (minAmount != null && minAmount !== '') list = list.filter(r => r.amount >= Number(minAmount) * rate)
-        if (maxAmount != null && maxAmount !== '') list = list.filter(r => r.amount <= Number(maxAmount) * rate)
+        if (minAmount != null && minAmount !== '')
+          list = list.filter(r => r.amount >= Number(minAmount) * rate)
+        if (maxAmount != null && maxAmount !== '')
+          list = list.filter(r => r.amount <= Number(maxAmount) * rate)
         // 自定义区间日期过滤（启用后主控件值被禁用，以 cusStart/cusEnd 为准）
         if (cusStart) list = list.filter(r => r.createdAt >= cusStart)
         if (cusEnd) list = list.filter(r => r.createdAt <= cusEnd)
@@ -194,16 +279,37 @@ export default {
       // 自定义区间：同时展示勾选态与 customRange.startProp/endProp 的实际值，便于观察启用/关闭/重开
       if (field.customRange) {
         const cr = field.customRange
-        extra = '，' + cr.startProp + '=' + JSON.stringify(form[cr.startProp]) + '，' + cr.endProp + '=' + JSON.stringify(form[cr.endProp])
+        extra =
+          '，' +
+          cr.startProp +
+          '=' +
+          JSON.stringify(form[cr.startProp]) +
+          '，' +
+          cr.endProp +
+          '=' +
+          JSON.stringify(form[cr.endProp])
       }
       // double-input + extraOptions：展示区间值与单位，便于观察切换与回显
       if (field.type === 'double-input' && field.extraProp) {
-        extra = '，' + field.startProp + '=' + JSON.stringify(form[field.startProp]) + '，' + field.endProp + '=' + JSON.stringify(form[field.endProp]) + '，' + field.extraProp + '=' + JSON.stringify(form[field.extraProp])
+        extra =
+          '，' +
+          field.startProp +
+          '=' +
+          JSON.stringify(form[field.startProp]) +
+          '，' +
+          field.endProp +
+          '=' +
+          JSON.stringify(form[field.endProp]) +
+          '，' +
+          field.extraProp +
+          '=' +
+          JSON.stringify(form[field.extraProp])
       }
       this.log = 'search-change 事件: ' + field.label + ' = ' + JSON.stringify(value) + extra
     },
     handleSelectionChange(selection) {
-      this.log = 'selection-change: 已选 ' + selection.length + ' 项 → ' + selection.map(r => r.id).join(',')
+      this.log =
+        'selection-change: 已选 ' + selection.length + ' 项 → ' + selection.map(r => r.id).join(',')
     },
     logSelect(selection, row) {
       this.log = 'select 事件: 行 ' + (row && row.id) + '，当前选中 ' + selection.length + ' 项'
@@ -245,21 +351,36 @@ export default {
     // 覆盖 double-input 的区间值 + extraDefaultValue（万元）与 customRange.defaultValue（启用态日期区间）
     echoSearchForm() {
       const echo = {
-        minAmount: '1', maxAmount: '2', amountUnit: 'wan',
-        cusStart: '2026-10-08', cusEnd: '2026-10-18',
+        minAmount: '1',
+        maxAmount: '2',
+        amountUnit: 'wan',
+        cusStart: '2026-10-08',
+        cusEnd: '2026-10-18',
       }
       this.searchFields = this.searchFields.map(f => {
         if (f.type === 'double-input' && f.extraProp === 'amountUnit') {
-          return { ...f, defaultValue: [echo.minAmount, echo.maxAmount], extraDefaultValue: echo.amountUnit }
+          return {
+            ...f,
+            defaultValue: [echo.minAmount, echo.maxAmount],
+            extraDefaultValue: echo.amountUnit,
+          }
         }
         if (f.customRange) {
-          return { ...f, customRange: { ...f.customRange, defaultValue: [echo.cusStart, echo.cusEnd] } }
+          return {
+            ...f,
+            customRange: { ...f.customRange, defaultValue: [echo.cusStart, echo.cusEnd] },
+          }
         }
         return f
       })
       this.$nextTick(() => {
         this.$refs.table.resetSearch()
-        this.log = '回显：金额区间 1~2 万元、自定义区间 ' + echo.cusStart + ' ~ ' + echo.cusEnd + '（已启用）'
+        this.log =
+          '回显：金额区间 1~2 万元、自定义区间 ' +
+          echo.cusStart +
+          ' ~ ' +
+          echo.cusEnd +
+          '（已启用）'
       })
     },
     batchAction(name) {
