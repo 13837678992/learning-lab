@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  TraceKeep 应用清单。
+  权限策略（需求 §3、§4、§8：最小化、按功能必要性逐项声明，均为「使用中」场景）：
+  - RECORD_AUDIO：录音功能必需（运行时申请，含说明界面）；
+  - CAMERA：录像功能必需（运行时申请；录像模式才请求）；
+  - ACCESS_FINE_LOCATION / ACCESS_COARSE_LOCATION：可选「随录制记录位置」（默认关闭，
+    用户显式开启时才请求；前台采样，**不申请后台定位**）；
+  - FOREGROUND_SERVICE / FOREGROUND_SERVICE_MICROPHONE / FOREGROUND_SERVICE_CAMERA：
+    录制前台服务必需（14+ 强制按类型声明）；
+  - FOREGROUND_SERVICE_LOCATION：录制期间前台服务附带定位采样时必需（14+）；
+  - POST_NOTIFICATIONS：13+ 前台服务通知可见性（被拒绝时服务仍可运行，界面如实提示）。
+  隐私基线：allowBackup=false（证据材料不进系统备份通道）。
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false" />
+
+    <application
+        android:name=".TraceKeepApp"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:label="TraceKeep"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <!-- configChanges：录制会话进行中不因旋转/折叠重建 Activity（重建会破坏预览绑定），
+             布局通过 responsive 布局适配横竖屏；会话状态与资源由 RecordingSessionHolder 持有。 -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".recording.RecordingService"
+            android:exported="false"
+            android:foregroundServiceType="microphone|camera|location|mediaProjection" />
+    </application>
+
+</manifest>

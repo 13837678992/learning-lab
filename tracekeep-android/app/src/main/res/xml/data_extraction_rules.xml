@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+（API 31）备份与设备迁移排除规则（需求 §8；THREAT_MODEL P-5；SECURITY_AND_PRIVACY §2.3）。
+  证据材料（原始媒体、事件日志、定位、签名记录）全部位于应用私有存储；
+  `allowBackup=false` 仅对 API ≤30 完整生效，31+ 需本规则同样排除云备份与设备到设备迁移。
+  规则：排除整个私有 root（files/、cache/、databases/、sharedpref/ 等）——证据不得经任何备份通道离开设备。
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>
