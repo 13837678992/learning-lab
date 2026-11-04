@@ -1,0 +1,117 @@
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :core:model:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:model:compileKotlin UP-TO-DATE
+> Task :core:model:compileJava NO-SOURCE
+> Task :core:model:processResources NO-SOURCE
+> Task :core:model:classes UP-TO-DATE
+> Task :core:model:jar UP-TO-DATE
+> Task :core:recording:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:crypto:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:integrity:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:integrity:compileKotlin UP-TO-DATE
+> Task :core:integrity:compileJava NO-SOURCE
+> Task :core:integrity:processResources NO-SOURCE
+> Task :core:integrity:classes UP-TO-DATE
+> Task :core:integrity:jar UP-TO-DATE
+> Task :core:crypto:compileKotlin UP-TO-DATE
+> Task :core:crypto:compileJava NO-SOURCE
+> Task :core:crypto:processResources NO-SOURCE
+> Task :core:crypto:classes UP-TO-DATE
+> Task :core:crypto:jar UP-TO-DATE
+> Task :core:location:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:location:compileKotlin UP-TO-DATE
+> Task :core:location:compileJava NO-SOURCE
+> Task :core:location:processResources NO-SOURCE
+> Task :core:location:classes UP-TO-DATE
+> Task :core:location:jar UP-TO-DATE
+> Task :core:storage:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:storage:compileKotlin UP-TO-DATE
+> Task :core:storage:compileJava NO-SOURCE
+> Task :core:storage:processResources NO-SOURCE
+> Task :core:storage:classes UP-TO-DATE
+> Task :core:storage:jar UP-TO-DATE
+> Task :core:recording:compileKotlin UP-TO-DATE
+> Task :core:recording:compileJava NO-SOURCE
+> Task :core:recording:processResources NO-SOURCE
+> Task :core:recording:classes UP-TO-DATE
+> Task :core:recording:jar UP-TO-DATE
+> Task :core:export:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:provider:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:provider:compileKotlin UP-TO-DATE
+> Task :core:provider:compileJava NO-SOURCE
+> Task :core:provider:processResources NO-SOURCE
+> Task :core:provider:classes UP-TO-DATE
+> Task :core:provider:jar UP-TO-DATE
+> Task :core:verify:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:verify:compileKotlin UP-TO-DATE
+> Task :core:verify:compileJava NO-SOURCE
+> Task :core:verify:processResources NO-SOURCE
+> Task :core:verify:classes UP-TO-DATE
+> Task :core:verify:jar UP-TO-DATE
+> Task :core:export:compileKotlin UP-TO-DATE
+> Task :core:export:compileJava NO-SOURCE
+> Task :core:export:processResources NO-SOURCE
+> Task :core:export:classes UP-TO-DATE
+> Task :core:export:jar UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:generateReleaseBuildConfig
+> Task :app:checkReleaseAarMetadata UP-TO-DATE
+> Task :app:generateReleaseResValues UP-TO-DATE
+> Task :app:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:mergeReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease UP-TO-DATE
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
+> Task :app:javaPreCompileRelease UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeReleaseJniLibFolders UP-TO-DATE
+> Task :app:mergeReleaseNativeLibs UP-TO-DATE
+> Task :app:stripReleaseDebugSymbols UP-TO-DATE
+> Task :app:extractReleaseNativeSymbolTables UP-TO-DATE
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :app:desugarReleaseFileDependencies UP-TO-DATE
+> Task :app:mergeReleaseStartupProfile UP-TO-DATE
+> Task :app:mergeExtDexRelease UP-TO-DATE
+> Task :app:mergeReleaseArtProfile UP-TO-DATE
+> Task :app:mergeReleaseShaders UP-TO-DATE
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets UP-TO-DATE
+> Task :app:compressReleaseAssets UP-TO-DATE
+> Task :app:extractReleaseVersionControlInfo
+> Task :app:collectReleaseDependencies UP-TO-DATE
+> Task :app:sdkReleaseDependencyData UP-TO-DATE
+> Task :app:validateSigningRelease UP-TO-DATE
+> Task :app:writeReleaseAppMetadata UP-TO-DATE
+> Task :app:writeReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:processReleaseManifestForPackage
+> Task :app:processReleaseResources
+> Task :app:optimizeReleaseResources
+
+> Task :app:compileReleaseKotlin
+w: file:///Users/weicheng/code/learning-lab/tracekeep-android/app/src/main/kotlin/re/tracekeep/app/MainActivity.kt:101:26 'val LocalLifecycleOwner: ProvidableCompositionLocal<LifecycleOwner>' is deprecated. Moved to lifecycle-runtime-compose library in androidx.lifecycle.compose package.
+
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:generateReleaseLintVitalReportModel
+> Task :app:dexBuilderRelease
+> Task :app:mergeReleaseGlobalSynthetics UP-TO-DATE
+> Task :app:processReleaseJavaRes UP-TO-DATE
+> Task :app:mergeReleaseJavaResource
+> Task :app:mergeDexRelease
+> Task :app:compileReleaseArtProfile
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:assembleRelease
+
+BUILD SUCCESSFUL in 19s
+68 actionable tasks: 20 executed, 48 up-to-date

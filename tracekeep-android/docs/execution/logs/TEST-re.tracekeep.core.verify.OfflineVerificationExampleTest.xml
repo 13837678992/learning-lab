@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.verify.OfflineVerificationExampleTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:30:44" hostname="weichengdeMacBook-Air.local" time="0.021">
+  <properties/>
+  <testcase name="verifyRealDeviceEvidenceIfPresent" classname="re.tracekeep.core.verify.OfflineVerificationExampleTest" time="0.021"/>
+  <system-out><![CDATA[=== 会话 012ea119-b5e7-4784-8292-051aa8395ecf 验证结果 ===
+  PASS  证据格式版本兼容性：formatVersion=2 在支持范围 1..2
+  FAIL  文件完整性（重算 SHA-256）：通过 0/1 项；异常：media/01d67153-caae-4105-8e5d-a650501d7d04-media.m4a: 哈希不符（登记 1645fab89a4e… 实际 f4a8dc2e1cc3…）
+  PASS  事件哈希链连续性：入链 10 条
+  PASS  签名验证：签名有效（algorithm=ECDSA_P256_SHA256，keyId=EC-P256-266076977855CDEB）；仅说明该内容由对应私钥签署，不代表身份已获外部认证或内容真实
+[ok] 已在脱离原 App 的环境验证真实设备证据（含签名）
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

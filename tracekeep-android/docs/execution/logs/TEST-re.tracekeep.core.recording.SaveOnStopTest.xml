@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.recording.SaveOnStopTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:29:45" hostname="weichengdeMacBook-Air.local" time="0.434">
+  <properties/>
+  <testcase name="stop_savesSession_withPersistedStatusAndTimes" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.057"/>
+  <testcase name="recovery_observesFactBeforeRetrying" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.07"/>
+  <testcase name="completeRecordingSave_isIdempotent_noDuplicateEvents" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.06"/>
+  <testcase name="pendingSaveRecovery_completesSaveAfterRestart" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.053"/>
+  <testcase name="integrityFailure_marksFailed_keepsFile" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.061"/>
+  <testcase name="restart_persistedRecordStillVisibleInLibrary" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.049"/>
+  <testcase name="emptyFile_rejectedAsSaveFailure" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.047"/>
+  <testcase name="notFinalizedFile_rejectedAsSaveFailure" classname="re.tracekeep.core.recording.SaveOnStopTest" time="0.036"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.verify.EvidenceVerifierTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:30:44" hostname="weichengdeMacBook-Air.local" time="0.074">
+  <properties/>
+  <testcase name="scenario1_allValid_allPass" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.048"/>
+  <testcase name="scenario7_wrongPublicKey_failsSignature" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.005"/>
+  <testcase name="scenario4_modifiedMiddleRecord_failsChain" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.003"/>
+  <testcase name="scenario2_modifiedFile_failsFileIntegrity" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.005"/>
+  <testcase name="scenario9_missingPublicKey_skippedNotPassed" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.004"/>
+  <testcase name="scenario6_insertedForgedRecord_failsChain" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.002"/>
+  <testcase name="onePass_doesNotMaskOtherFailures" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.002"/>
+  <testcase name="scenario11_legacyPreChainEvents_warn" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.001"/>
+  <testcase name="scenario10_unsignedSession_signatureSkipped" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.0"/>
+  <testcase name="scenario5_deletedRecord_failsChain" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.0"/>
+  <testcase name="scenario3_modifiedEventContent_failsChain" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.0"/>
+  <testcase name="scenario8_corruptedSignature_failsSignature" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.002"/>
+  <testcase name="scenario12_unsupportedFormatVersion_fails" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.0"/>
+  <testcase name="skippedEventLines_producesWarnNotPass" classname="re.tracekeep.core.verify.EvidenceVerifierTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

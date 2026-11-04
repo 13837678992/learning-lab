@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.crypto.SignatureVerifierTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-30T06:33:21" hostname="weichengdeMacBook-Air.local" time="0.071">
+  <properties/>
+  <testcase name="malformedPublicKey_reportsInvalidPublicKey" classname="re.tracekeep.core.crypto.SignatureVerifierTest" time="0.049"/>
+  <testcase name="sealEncoding_isDeterministic_andFileOrderIndependent" classname="re.tracekeep.core.crypto.SignatureVerifierTest" time="0.001"/>
+  <testcase name="tamperedPayload_reportsDigestMismatch" classname="re.tracekeep.core.crypto.SignatureVerifierTest" time="0.005"/>
+  <testcase name="differentPayloads_produceDifferentDigests" classname="re.tracekeep.core.crypto.SignatureVerifierTest" time="0.003"/>
+  <testcase name="corruptedSignatureValue_reportsInvalidSignature" classname="re.tracekeep.core.crypto.SignatureVerifierTest" time="0.004"/>
+  <testcase name="validSignature_verifies" classname="re.tracekeep.core.crypto.SignatureVerifierTest" time="0.005"/>
+  <testcase name="wrongPublicKey_reportsInvalidSignature" classname="re.tracekeep.core.crypto.SignatureVerifierTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

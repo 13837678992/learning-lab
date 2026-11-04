@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.model.EvidenceSerializationTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-30T06:44:53" hostname="weichengdeMacBook-Air.local" time="0.056">
+  <properties/>
+  <testcase name="enums_areEncodedByName_stableAcrossReordering" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.036"/>
+  <testcase name="v1Session_readsAsV2_withNullSaveFields" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.002"/>
+  <testcase name="decode_ignoresUnknownKeys_forwardCompatible" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.003"/>
+  <testcase name="event_roundTrips_withPayload" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.012"/>
+  <testcase name="evidenceFile_roundTrips" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.001"/>
+  <testcase name="encodeDefaults_writesFormatVersionAndNullsExplicitly" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.0"/>
+  <testcase name="location_roundTrips" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.001"/>
+  <testcase name="encoding_isDeterministicForSameValue" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.0"/>
+  <testcase name="session_roundTrips" classname="re.tracekeep.core.model.EvidenceSerializationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

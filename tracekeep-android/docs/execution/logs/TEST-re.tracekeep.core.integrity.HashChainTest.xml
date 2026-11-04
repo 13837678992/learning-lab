@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.integrity.HashChainTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-30T06:44:53" hostname="weichengdeMacBook-Air.local" time="0.019">
+  <properties/>
+  <testcase name="canonicalEncoding_distinguishesNullFromEmptyString" classname="re.tracekeep.core.integrity.HashChainTest" time="0.013"/>
+  <testcase name="deletedMiddleEvent_reportsBrokenLinkAndSeqGap" classname="re.tracekeep.core.integrity.HashChainTest" time="0.002"/>
+  <testcase name="emptyChain_isIntact" classname="re.tracekeep.core.integrity.HashChainTest" time="0.0"/>
+  <testcase name="modifiedContent_reportsHashMismatch" classname="re.tracekeep.core.integrity.HashChainTest" time="0.0"/>
+  <testcase name="legacyPreChainEvents_markedPreChain_notCountedAsIntactChain" classname="re.tracekeep.core.integrity.HashChainTest" time="0.0"/>
+  <testcase name="canonicalEncoding_excludesOwnHashField" classname="re.tracekeep.core.integrity.HashChainTest" time="0.0"/>
+  <testcase name="badGenesis_reported" classname="re.tracekeep.core.integrity.HashChainTest" time="0.001"/>
+  <testcase name="wellFormedChain_verifiesIntact" classname="re.tracekeep.core.integrity.HashChainTest" time="0.0"/>
+  <testcase name="incompleteChainFields_reported" classname="re.tracekeep.core.integrity.HashChainTest" time="0.001"/>
+  <testcase name="reorderedEvents_reported" classname="re.tracekeep.core.integrity.HashChainTest" time="0.0"/>
+  <testcase name="insertedForgedEvent_reportsBrokenLink" classname="re.tracekeep.core.integrity.HashChainTest" time="0.0"/>
+  <testcase name="canonicalEncoding_deterministic_andPayloadKeyOrderIndependent" classname="re.tracekeep.core.integrity.HashChainTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

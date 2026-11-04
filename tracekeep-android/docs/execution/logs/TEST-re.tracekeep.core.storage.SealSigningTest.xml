@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.storage.SealSigningTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:29:43" hostname="weichengdeMacBook-Air.local" time="0.452">
+  <properties/>
+  <testcase name="sealSigned_writesVerifiableSignature" classname="re.tracekeep.core.storage.SealSigningTest" time="0.106"/>
+  <testcase name="unsignedSession_hasNoSignatureRecord" classname="re.tracekeep.core.storage.SealSigningTest" time="0.062"/>
+  <testcase name="signatureRecord_containsNoPrivateKey" classname="re.tracekeep.core.storage.SealSigningTest" time="0.075"/>
+  <testcase name="signingFailure_propagates_doesNotMarkSigned" classname="re.tracekeep.core.storage.SealSigningTest" time="0.063"/>
+  <testcase name="sealSigned_signatureCoversChainHead" classname="re.tracekeep.core.storage.SealSigningTest" time="0.072"/>
+  <testcase name="sealStillVerifiable_afterSigning" classname="re.tracekeep.core.storage.SealSigningTest" time="0.073"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

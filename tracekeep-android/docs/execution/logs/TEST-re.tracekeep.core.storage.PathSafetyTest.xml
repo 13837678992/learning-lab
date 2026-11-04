@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.storage.PathSafetyTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:29:43" hostname="weichengdeMacBook-Air.local" time="0.002">
+  <properties/>
+  <testcase name="wrongRootRelativePath_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="emptySessionId_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="uppercaseSessionId_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="validRelativePath_returnsNormalized" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.001"/>
+  <testcase name="resolveInside_escapesRejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="traversalSessionId_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="slashSessionId_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="bareFileNameWithoutRoot_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="resolveInside_keepsPathUnderRoot" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="absoluteRelativePath_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="traversalRelativePath_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.001"/>
+  <testcase name="backslashRelativePath_rejected" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <testcase name="safeSessionIds_accepted" classname="re.tracekeep.core.storage.PathSafetyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

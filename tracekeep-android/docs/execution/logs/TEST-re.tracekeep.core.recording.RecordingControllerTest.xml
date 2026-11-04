@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.recording.RecordingControllerTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:29:44" hostname="weichengdeMacBook-Air.local" time="0.971">
+  <properties/>
+  <testcase name="userCancel_abortsButKeepsBytesForAudit" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.139"/>
+  <testcase name="audioSession_switchCamera_unsupportedByEngine_recordedAsFailure" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.032"/>
+  <testcase name="pauseFailure_recorded_stateUnchanged" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.032"/>
+  <testcase name="configEvent_marksRequestedTrue" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.027"/>
+  <testcase name="stop_inspectorFailure_recordedWithoutAffectingStop" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.056"/>
+  <testcase name="videoSession_happyPath_finalizesWithCorrectHash" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.053"/>
+  <testcase name="stopWithoutStart_rejected" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.0"/>
+  <testcase name="sessionAfterAbort_canBeSealed_withAnomaliesFlagged" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.068"/>
+  <testcase name="videoSession_switchCamera_recordsEventWithFacing" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.028"/>
+  <testcase name="engineStopFailure_marksIncomplete_andAborts" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.049"/>
+  <testcase name="doubleStart_rejected" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.025"/>
+  <testcase name="stop_recordsObservedMediaParameters_separateFromRequested" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.066"/>
+  <testcase name="videoSession_configEvent_marksKindCameraVideo" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.028"/>
+  <testcase name="start_pause_resume_stop_happyPath" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.079"/>
+  <testcase name="videoSession_switchCameraFailure_recordedStateUnchanged" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.043"/>
+  <testcase name="sessionAfterStop_canBeSealed_withNoAnomalies" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.086"/>
+  <testcase name="onPermissionRevoked_isRecordedAsEngineError" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.048"/>
+  <testcase name="engineStartFailure_abortsSession_fileIncomplete_notDisguisedAsSuccess" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.034"/>
+  <testcase name="onEngineError_midRecording_abortsAndMarksIncomplete" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.042"/>
+  <testcase name="resumeFailure_recorded" classname="re.tracekeep.core.recording.RecordingControllerTest" time="0.034"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

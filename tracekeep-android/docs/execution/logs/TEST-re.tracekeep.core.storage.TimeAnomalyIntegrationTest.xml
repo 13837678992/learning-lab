@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.storage.TimeAnomalyIntegrationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:29:44" hostname="weichengdeMacBook-Air.local" time="0.046">
+  <properties/>
+  <testcase name="restart_doesNotFalsePositive_whenBaselineRestoredFromLog" classname="re.tracekeep.core.storage.TimeAnomalyIntegrationTest" time="0.016"/>
+  <testcase name="stableClock_noFalsePositive" classname="re.tracekeep.core.storage.TimeAnomalyIntegrationTest" time="0.013"/>
+  <testcase name="wallClockJump_isRecordedAsObservedAnomaly" classname="re.tracekeep.core.storage.TimeAnomalyIntegrationTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

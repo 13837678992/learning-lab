@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.recording.ScreenRecordingTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:29:45" hostname="weichengdeMacBook-Air.local" time="0.17">
+  <properties/>
+  <testcase name="wavFinalize_backfillsLengthForPlaceholderFile" classname="re.tracekeep.core.recording.ScreenRecordingTest" time="0.001"/>
+  <testcase name="screenSession_internalAudioStartFailure_abortsWholeSession_filesIncomplete" classname="re.tracekeep.core.recording.ScreenRecordingTest" time="0.056"/>
+  <testcase name="wavHeader_hasCanonicalRiffStructure" classname="re.tracekeep.core.recording.ScreenRecordingTest" time="0.0"/>
+  <testcase name="wavFinalize_shortFile_unchanged" classname="re.tracekeep.core.recording.ScreenRecordingTest" time="0.001"/>
+  <testcase name="screenSession_registersBothOutputs_andSavesWithInternalAudio" classname="re.tracekeep.core.recording.ScreenRecordingTest" time="0.06"/>
+  <testcase name="screenConfig_recordsAudioSourceInConfigEvent" classname="re.tracekeep.core.recording.ScreenRecordingTest" time="0.025"/>
+  <testcase name="screenSession_noAudio_declaresSingleOutput" classname="re.tracekeep.core.recording.ScreenRecordingTest" time="0.027"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

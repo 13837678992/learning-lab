@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.location.TimeJumpDetectorTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-30T06:44:53" hostname="weichengdeMacBook-Air.local" time="0.002">
+  <properties/>
+  <testcase name="wallClockAdvanced_detected" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.001"/>
+  <testcase name="stableOffset_isConsistent" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.0"/>
+  <testcase name="firstSample_hasNoBaseline_isConsistent" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.0"/>
+  <testcase name="anomaly_carriesBothOffsetsForAudit" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.0"/>
+  <testcase name="customThreshold_respected" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.001"/>
+  <testcase name="monotonicReset_classifiedAsSuspectNotTampering" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.0"/>
+  <testcase name="wallClockSetBack_detected" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.0"/>
+  <testcase name="smallDrift_withinThreshold_isConsistent" classname="re.tracekeep.core.location.TimeJumpDetectorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

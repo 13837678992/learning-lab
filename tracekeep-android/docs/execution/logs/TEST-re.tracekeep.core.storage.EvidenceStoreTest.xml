@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="re.tracekeep.core.storage.EvidenceStoreTest" tests="36" skipped="0" failures="0" errors="0" timestamp="2026-10-30T07:29:42" hostname="weichengdeMacBook-Air.local" time="1.468">
+  <properties/>
+  <testcase name="recovery_leavesStoppedAndSealedSessionsUntouched" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.201"/>
+  <testcase name="listSessionIds_returnsCreatedSessions" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.02"/>
+  <testcase name="readEvents_skipsCorruptLines_withoutModifyingFile" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.025"/>
+  <testcase name="recovery_abortsRecordingSession_andMarksFilesIncomplete" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.071"/>
+  <testcase name="eventSeq_isMonotonicAcrossStoreInstances" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.024"/>
+  <testcase name="finalizeFile_recordsSha256AndSize" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.037"/>
+  <testcase name="sealedSession_rejectsFurtherEvents" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.052"/>
+  <testcase name="illegalTransition_createdToPaused_rejected" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.009"/>
+  <testcase name="registerFile_setsRegisteredLifecycle_andCreatesEmptyFile" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.025"/>
+  <testcase name="finalizeFile_isIdempotent" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.033"/>
+  <testcase name="verifyFile_failWhenOneByteChanged" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.031"/>
+  <testcase name="locations_appendAndRead" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.022"/>
+  <testcase name="originalFile_withSource_rejected" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.033"/>
+  <testcase name="seal_marksStillRegisteredFilesIncomplete_andFlagsAnomalies" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.067"/>
+  <testcase name="sealedSession_rejectsFileRegistration" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.044"/>
+  <testcase name="verifySeal_detectsMissingFile" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.069"/>
+  <testcase name="seal_fromStopped_marksSealed_andWritesSealRecord" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.061"/>
+  <testcase name="seal_requiresStoppedOrAborted" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.018"/>
+  <testcase name="verifySeal_allMatchWhenUntouched" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.063"/>
+  <testcase name="fullLifecycle_transitionsAndEventsInOrder" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.042"/>
+  <testcase name="verifyFile_missingWhenDeleted" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.031"/>
+  <testcase name="sealedSession_rejectsTransition" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.046"/>
+  <testcase name="plainTransitionToSealed_rejected" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.025"/>
+  <testcase name="derivedFile_requiresAndRecordsSource" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.045"/>
+  <testcase name="transitionAfterAborted_rejected" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.023"/>
+  <testcase name="seal_fromAborted_recordsAnomaliesFlag" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.043"/>
+  <testcase name="verifySeal_detectsTamperedMedia" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.063"/>
+  <testcase name="locations_absentFile_readsEmpty" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.02"/>
+  <testcase name="recovery_recordsObservationsInEventLog" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.026"/>
+  <testcase name="verifyFile_unfinishedWhenNeverFinalized" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.026"/>
+  <testcase name="createSession_startsInCreated_withSessionCreatedEvent" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.009"/>
+  <testcase name="verifyFile_passWhenUnchanged" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.037"/>
+  <testcase name="markFileIncomplete_clearsHash_andNotesReason" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.034"/>
+  <testcase name="derivedFile_withoutSource_rejected" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.018"/>
+  <testcase name="verifySeal_detectsAppendedEventLine" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.051"/>
+  <testcase name="verifySeal_unsealedSessionRejected" classname="re.tracekeep.core.storage.EvidenceStoreTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
