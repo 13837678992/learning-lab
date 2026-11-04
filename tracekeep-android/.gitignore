@@ -1,0 +1,25 @@
+# Gradle
+.gradle/
+build/
+.kotlin/
+
+# Android
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# 签名材料（绝不进版本控制）
+keystore/
+keystore.properties
+
+# 分发包
+dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
