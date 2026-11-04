@@ -125,14 +125,17 @@ export default {
           ] },
           { value: 'o2', label: '分部' },
         ] },
-        { prop: 'status', label: '状态', type: 'select', defaultValue: '1', options: [
+        { prop: 'status', label: '状态', span: 16, type: 'select', defaultValue: '1', options: [
           { label: '启用', value: '1' },
           { label: '停用', value: '0' },
         ], customRange: { startProp: 'cusStart', endProp: 'cusEnd' } },
         { type: 'daterange', label: '创建日期', startProp: 'startDate', endProp: 'endDate' },
         // 金额区间：单位由 extraOptions 下拉切换（元/万元），值写入 extraProp；
-        // 不再同时配置 unit，避免固定单位文字与可切换单位下拉语义重复
-        { type: 'double-input', label: '金额区间', startProp: 'minAmount', endProp: 'maxAmount', startLimit: { min: 0 }, endLimit: { max: 10000 },
+        // 不再同时配置 unit，避免固定单位文字与可切换单位下拉语义重复。
+        // span 16：三列栅格下内容区只有 237px，装不下「两个输入框 + 至 + 单位下拉」
+        // 且不压缩输入框（120px 标签固定占用），故让该字段独占两列，
+        // 单个输入框宽度与其余字段的输入框一致
+        { type: 'double-input', label: '金额区间', span: 16, startProp: 'minAmount', endProp: 'maxAmount', startLimit: { min: 0 }, endLimit: { max: 10000 },
           extraProp: 'amountUnit', extraOptions: [{ label: '元', value: 'yuan' }, { label: '万元', value: 'wan' }] },
         { prop: 'codeInput', label: '编码关键字', type: 'unit-input', unit: '号', precision: 0 },
         { type: 'select-input', label: '类型关键字', startProp: 'type', endProp: 'keyword', options: [
@@ -288,6 +291,76 @@ export default {
     font-size: 12px;
     color: #666;
     word-break: break-all;
+  }
+
+  // 双输入区间：组件内 `.el-input` 作为 flex 项沿用自动最小尺寸（min-width:auto，
+  // 由原生 input 的 size 撑出约 177px min-content），三列栅格下两个输入框的最小
+  // 宽度之和已超过内容区，`flex-wrap: wrap` 于是把 90px 的单位下拉换到第二行。
+  // 放开输入框最小宽度并禁止换行，空间不足时由两个输入框等比压缩。
+  ::v-deep .config-table__double-input {
+    flex-wrap: nowrap;
+
+    > .el-input {
+      min-width: 0;
+    }
+
+    .config-table__extra-select {
+      // 76px 是「万元」文本加后缀箭头不被裁切的下限；有余量时仍按组件的 90px 展示
+      flex: 0 1 90px;
+      min-width: 76px;
+    }
+  }
+
+  // 下拉 + 自定义区间（状态）：通用规则把 `.el-select` 撑成 100% 宽，而区间块是
+  // 块级 flex，两者只能各占一行——字段即便独占两列也仍是两行。让内容区改为可换行的
+  // 弹性行：下拉固定取宽、区间块吃掉剩余宽度，同一行排开；剩余不足时区间块整块回下一行。
+  ::v-deep .el-form-item__content:has(> .config-table__custom-range) {
+    display: flex;
+    align-items: center;
+    // 装不下时让区间块整块回到下一行独占全宽，而不是把日期编辑器挤窄
+    flex-wrap: wrap;
+    gap: 8px;
+
+    // 内容区的 ::before/::after 是浮动时代的清浮动占位，在 flex 下会变成两个零宽
+    // 匿名项、各占一个 gap（左右各 8px），使控件整体右移且右侧留白，与上下行不对齐
+    &::before,
+    &::after {
+      display: none;
+    }
+
+    > .el-select {
+      width: 160px;
+      // 下拉文字可用宽 = 宽 - 左右内边距 - 后缀箭头（实测 160px 时余 88px）。
+      // 空间不足时先压缩下拉到 145px（仍可完整显示占位「请选择状态」70px），
+      // 再不够才由区间块换行
+      flex: 0 1 160px;
+      min-width: 145px;
+    }
+
+    > .config-table__custom-range {
+      // 342px = 勾选 94 + 间距 8 + 日期编辑器 240，即单行所需下限：
+      // 有余量时吃掉剩余宽度，不足时不参与压缩、直接换行
+      flex: 1 0 342px;
+    }
+  }
+
+  // 查询操作区：组件把它当作普通栅格列排在字段流之后，而 `el-row` 是浮动布局，
+  // 因此展开态下字段占满最后一行时操作区会掉到下一行左侧，收起态下又与行内最高
+  // 字段顶端对齐。改为弹性换行容器，操作区不参与栅格取宽，统一靠行尾、对齐行底。
+  ::v-deep .config-table__search .el-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  ::v-deep .config-table__search .el-row > .el-col {
+    flex-shrink: 0;
+  }
+
+  ::v-deep .config-table__search .el-row > .el-col:last-child {
+    width: auto;
+    flex: 0 0 auto;
+    margin-left: auto;
+    align-self: flex-end;
   }
 }
 </style>
